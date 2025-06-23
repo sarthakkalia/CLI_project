@@ -1,0 +1,179 @@
+{
+  "metadata": {
+    "source": "github",
+    "created_at": "2025-06-17T16:37:26.895785",
+    "repos": [
+      "github/docs",
+      "facebook/react",
+      "docker/for-linux",
+      "python/cpython",
+      "pypa/pipx",
+      "pypa/virtualenv",
+      "git/git"
+    ]
+  },
+  "qnas": [
+    {
+      "source": "github",
+      "repo": "pypa/pipx",
+      "question": "How to upgrade pipx on Ubuntu",
+      "answer": "I would recommend to install pipx with pipx, though it is not recommended in the documentation.\nI started another discussion about the exact limitation, and that is actually how I use/upgrade pipx on ubuntu.\nhttps://github.com/pypa/pipx/discussions/1341",
+      "url": "https://github.com/pypa/pipx/discussions/1380",
+      "created_at": "2024-04-28T21:03:54",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/pipx",
+      "question": "Recommendations for caching pipx installs in GitHub Actions",
+      "answer": "At work we cache the entire `~/.local/pipx` directory and that seems to work, or at least I never heard infra folks complain about it. Are there blockers to doing that?",
+      "url": "https://github.com/pypa/pipx/discussions/1051",
+      "created_at": "2023-09-01T12:29:50",
+      "upvotes": 2
+    },
+    {
+      "source": "github",
+      "repo": "pypa/pipx",
+      "question": "pipx and shell enhancer",
+      "answer": "I assume you probably want to inject the libraries into the main `powerline-status` installation.\nThe respective command for this is `pipx inject <application> <extension>`, so in your case `pipx inject powerline-status powerline-gitstatus`",
+      "url": "https://github.com/pypa/pipx/discussions/1501",
+      "created_at": "2024-08-05T22:23:57",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/pipx",
+      "question": "Is there a way to install a package that is located at an index-url that uses the keyring authentication method?",
+      "answer": "I built a small CLI myself and deployed it to GCP.\nI was able to install it with pipx via the following command:\n```bash\npipx install \\\n--index-url=https://<gcp-region>-python.pkg.dev/<project>/<registry-name>/simple/ \\\n--preinstall=keyrings.google-artifactregistry-auth \\\n--pip-args='--extra-index-url https://pypi.org/simple/ --keyring-provider import' \\\n<app-name>\n```\nPipx version `1.4.3`.\nIf you get auth errors, you may have to run one of the following commands first (either should work according to the keyring docs):\n```bash\ngcloud auth application-default login\ngcloud auth login\n```\nWill mark this as accepted answer and close the discussion. Let me know if you have any other questions.",
+      "url": "https://github.com/pypa/pipx/discussions/1280",
+      "created_at": "2024-03-06T05:21:08",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/pipx",
+      "question": "Found a space in the home path. We heavily discourage this, due to multiple     incompatibilities. Please check our docs for more information on this, as     well as some pointers on how to migrate to a different home path.",
+      "answer": "It was the default location from version 1.3 to version 1.5. In 1.5 we moved it to `~/.local/pipx`. If the old one exists, we still use that one though, but print the warning you are seeing.\nSo if you installed Pipx between version 1.3 and 1.5, that's the behavior you see.\nPlease refer to this discussion on how to resolve it: https://github.com/pypa/pipx/discussions/1330",
+      "url": "https://github.com/pypa/pipx/discussions/1315",
+      "created_at": "2024-04-01T11:00:21",
+      "upvotes": 4
+    },
+    {
+      "source": "github",
+      "repo": "pypa/pipx",
+      "question": "How does pipx manage environments for scripts with inline script metadata?",
+      "answer": "The cache duration for `pipx run` venvs is exactly 14 days, currently. For your case, would introducing an option to keep created virtual environments work? Probably we need some more fine-grained cache control, too, like `pip` has.\n> One solution for this might be if pipx install could take a path to a local script; should I file that as a feature request?\nThis would definitely require some larger restructuring changes and IMO contrast with `pipx`'s current policy that only standalone command line applications can be installed (not sure if a simple script is worth the effort), but feel free to.",
+      "url": "https://github.com/pypa/pipx/discussions/1387",
+      "created_at": "2024-05-02T16:58:03",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/pipx",
+      "question": "Upgrade more than one package but not all of them",
+      "answer": "You can run `pipx upgrade-all --skip <packages you want to skip>` for now. However, I think it's a good idea to allow `pipx upgrade` to accept multiple packages at the same time, just like the `install` command.",
+      "url": "https://github.com/pypa/pipx/discussions/1317",
+      "created_at": "2024-04-01T16:23:44",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/pipx",
+      "question": "how to change the appdata directory for pipx?",
+      "answer": "the app was installed before changing the variable, so, `pipx install`-ed app was still in its original dir.\nbut `pipx` rightly did not recognize that on `pipx list`\non deleting that dir, and redoing the install, it shows correctly at `D:\\UserFiles\\pipx\\venvs`\n```console\n$ pipx list\nvenvs are in D:\\UserFiles\\pipx\\venvs\napps are exposed on your $PATH at C:\\Users\\NemoUSR\\.local\\bin\nmanual pages are exposed at C:\\Users\\NemoUSR\\.local\\share\\man\npackage qrcode 7.4.2, installed using Python 3.11.2\n- qr.exe\n- man1\\qr.1\n$ file \"`which qr`\"\n/c/users/nemousr/.local/bin/qr: symbolic link to /d/UserFiles/pipx/venvs/qrcode/Scripts/qr.exe\n```\nthe _\"apps are exposed on your $PATH at\"_ i.e. _\"Apps are symlinked or copied here.\"_ is sooo awesome, i often wish there were some way to optionally do that after every software install",
+      "url": "https://github.com/pypa/pipx/discussions/1166",
+      "created_at": "2023-12-24T11:48:27",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/pipx",
+      "question": "Change the installed directory path of pipx",
+      "answer": "You could permanently set the `PIPX_HOME` environment variable. See the [CLI reference](https://pypa.github.io/pipx/docs/) for that.",
+      "url": "https://github.com/pypa/pipx/discussions/1097",
+      "created_at": "2023-11-01T05:49:15",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/pipx",
+      "question": "how to use pipx app in pyton script",
+      "answer": "pipx is used to install command line applications, i.e. you can run them from the command line directly.\n> Can [virtual environment](https://docs.python.org/3/library/venv.html) be used here?\nI think in this case you should create a virtual environment, and install packages like piper and gtts into it.",
+      "url": "https://github.com/pypa/pipx/discussions/1086",
+      "created_at": "2023-10-15T07:37:19",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/pipx",
+      "question": "help with transition from pip to pipx because of exernally-managed-environment error",
+      "answer": "You can delete the executable manually with `rm` before installing it with pipx. With pip >=23.2 you can also use `--break-system-packages` to forcefully uninstall the package.",
+      "url": "https://github.com/pypa/pipx/discussions/1035",
+      "created_at": "2023-08-08T19:40:16",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/virtualenv",
+      "question": "Cannot create virtualenv for Airflow - PythonVirtualenvOperator",
+      "answer": "PR (with test) to skip the permission denied is welcome.",
+      "url": "https://github.com/pypa/virtualenv/discussions/2731",
+      "created_at": "2024-05-31T15:20:30",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/virtualenv",
+      "question": "The mac virtual environment venv terminal cannot directly use the shortcut command pip",
+      "answer": "venv is not virtualenv, https://virtualenv.pypa.io/en/latest/user_guide.html#user-guide",
+      "url": "https://github.com/pypa/virtualenv/discussions/2631",
+      "created_at": "2023-08-29T07:11:51",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/virtualenv",
+      "question": "Do you have a plan to drop python < 3.7",
+      "answer": "3.7 EOL is 2023-06-27, which is not yet here. But virtualenv supports EOL pythons for another 1.5 years. So no plans to drop it anytime soon.",
+      "url": "https://github.com/pypa/virtualenv/discussions/2526",
+      "created_at": "2023-03-17T13:37:13",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/virtualenv",
+      "question": "Advice for debugging issues with data files not being installed",
+      "answer": "You have to turn on verbose mode for tox, virtualenv, pip, setuptools and try to figure out what's happening from those. Yeah",
+      "url": "https://github.com/pypa/virtualenv/discussions/2432",
+      "created_at": "2022-10-12T23:56:27",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/virtualenv",
+      "question": "Advice for seeder plugin",
+      "answer": "> cc @gaborbernat do you have any recommendations?\nSo my original idea was that in this case, you could extend your code from an existing seeder, and then you can do it at the end of the run method:\n```python\nfrom virtualenv.seed.embed.via_app_data.via_app_data import FromAppData\nclass CustomSeeder(FromAppData):\ndef run(self, creator):\nsuper().run()\nsubprocess.run([self.exe, '-m', 'pip', 'install', 'magic'])\n```\n```ini\n# setup.cfg\nvirtualenv.seed =\ncustom = virtualenv_plugin.CustomSeeder\n```\nOne thing that's not really solved, though, is how you enable this seeder. The user would have to opt-in to use it explicitly via config/CLI args. Of course, you can always use monkey patch the default here https://github.com/pypa/virtualenv/blob/de69dfadf6d8f622a82f269b7d43832997c86cb1/src/virtualenv/run/plugin/seeders.py#L28 ... but there's no official way at the moment to change the default seeder without explicit opt-in.",
+      "url": "https://github.com/pypa/virtualenv/discussions/2245",
+      "created_at": "2020-10-13T03:30:28",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/virtualenv",
+      "question": "How to recover from broken sync - request for improving error message",
+      "answer": "> as a workaround i had to remove the wheel/3.9 directory\nThis is one option, alternatively you can also use https://virtualenv.pypa.io/en/latest/cli_interface.html#reset-app-data",
+      "url": "https://github.com/pypa/virtualenv/discussions/2330",
+      "created_at": "2022-04-02T13:26:52",
+      "upvotes": 1
+    },
+    {
+      "source": "github",
+      "repo": "pypa/virtualenv",
+      "question": "Unable to create process at all with virtual environment binary",
+      "answer": "Linking a stack overflow answer for anyone who stumbles upon this in the future\nhttps://stackoverflow.com/questions/61641280/python3-8-venv-returned-exit-status-101/62207756#62207756",
+      "url": "https://github.com/pypa/virtualenv/discussions/2244",
+      "created_at": "2021-12-09T12:25:18",
+      "upvotes": 1
+    }
+  ]
+}

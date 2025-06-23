@@ -1,0 +1,1088 @@
+{
+  "metadata": {
+    "source": "Stack Overflow API",
+    "created_at": "2025-06-17T15:01:15.080338",
+    "topics": [
+      "git",
+      "bash",
+      "tar",
+      "gzip",
+      "grep",
+      "venv",
+      "docker",
+      "ssh",
+      "curl",
+      "awk"
+    ],
+    "questions_per_topic": 5
+  },
+  "qna_pairs": [
+    {
+      "topic": "git",
+      "question": {
+        "id": 927358,
+        "title": "How do I undo the most recent local commits in Git?",
+        "body": "I accidentally committed the wrong files to Git but haven't pushed the commit to the server yet.\nHow do I undo those commits from the local repository?",
+        "url": "https://stackoverflow.com/questions/927358/how-do-i-undo-the-most-recent-local-commits-in-git",
+        "votes": 27056,
+        "tags": [
+          "git",
+          "version-control",
+          "git-commit",
+          "undo"
+        ],
+        "created_at": "2009-05-29T18:09:14"
+      },
+      "answer": {
+        "id": 927386,
+        "body": "Undo a commit & redo\n\n```\n$ git commit -m \"Something terribly misguided\" # (0: Your Accident)\n$ git reset HEAD~                              # (1)\n# === If you just want to undo the commit, stop here! ===\n[ edit files as necessary ]                    # (2)\n$ git add .                                    # (3)\n$ git commit -c ORIG_HEAD                      # (4)\n\n```\n\n\ngit reset is the command responsible for the undo. It will undo your last commit while leaving your working tree (the state of your files on disk) untouched. You'll need to add them again before you can commit them again.\nMake corrections to working tree files.\ngit add anything that you want to include in your new commit.\nCommit the changes, reusing the old commit message. reset copied the old head to .git/ORIG_HEAD; commit with -c ORIG_HEAD will open an editor, which initially contains the log message from the old commit and allows you to edit it. If you do not need to edit the message, you could use the -C option.\n\nAlternatively, to edit the previous commit (or just its commit message), commit --amend will add changes within the current index to the previous commit.\nTo remove (not revert) a commit that has been pushed to the server, rewriting history with git push origin main --force[-with-lease] is necessary. It's almost always a bad idea to use --force; prefer --force-with-lease instead, and as noted in the git manual:\n\nYou should understand the implications of rewriting history if you amend a commit that has already been published.\n\n\nFurther Reading\nYou can use git reflog to determine the SHA-1 for the commit to which you wish to revert. Once you have this value, use the sequence of commands as explained above.\n\nHEAD~ is the same as HEAD~1. The article What is the HEAD in git? is helpful if you want to uncommit multiple commits.",
+        "votes": 29863,
+        "accepted": true,
+        "created_at": "2009-05-29T18:13:42"
+      }
+    },
+    {
+      "topic": "git",
+      "question": {
+        "id": 2003505,
+        "title": "How do I delete a Git branch locally and remotely?",
+        "body": "Failed Attempts to Delete a Remote Branch:\n\n```\n$ git branch -d remotes/origin/bugfix\nerror: branch 'remotes/origin/bugfix' not found.\n\n$ git branch -d origin/bugfix\nerror: branch 'origin/bugfix' not found.\n\n$ git branch -rd origin/bugfix\nDeleted remote branch origin/bugfix (was 2a14ef7).\n\n$ git push\nEverything up-to-date\n\n$ git pull\nFrom github.com:gituser/gitproject\n\n* [new branch] bugfix -> origin/bugfix\nAlready up-to-date.\n\n```\n\nHow do I properly delete the remotes/origin/bugfix branch both locally and remotely?",
+        "url": "https://stackoverflow.com/questions/2003505/how-do-i-delete-a-git-branch-locally-and-remotely",
+        "votes": 20365,
+        "tags": [
+          "git",
+          "version-control",
+          "git-branch",
+          "git-push",
+          "git-remote"
+        ],
+        "created_at": "2010-01-05T01:12:15"
+      },
+      "answer": {
+        "id": 2003515,
+        "body": "Executive Summary\n\n```\ngit push -d <remote_name> <branchname>   # Delete remote\ngit branch -d <branchname>               # Delete local\n\n```\n\nNote: In most cases, <remote_name> will be origin.\nDelete Local Branch\nTo delete the local branch, use one of the following:\n\n```\ngit branch -d <branch_name>\ngit branch -D <branch_name>\n\n```\n\n\nThe -d option is an alias for --delete, which only deletes the branch if it has already been fully merged in its upstream branch.\nThe -D option is an alias for --delete --force, which deletes the branch \"irrespective of its merged status.\" [Source: man git-branch]\nAs of Git v2.3, git branch -d (delete) learned to honor the -f (force) flag.\nYou will receive an error if you try to delete the currently selected branch.\n\nDelete Remote Branch\nAs of Git v1.7.0, you can delete a remote branch using\n\n```\n$ git push <remote_name> --delete <branch_name>\n\n```\n\nwhich might be easier to remember than\n\n```\n$ git push <remote_name> :<branch_name>\n\n```\n\nwhich was added in Git v1.5.0 \"to delete a remote branch or a tag.\"\nStarting with Git v2.8.0, you can also use git push with the -d option as an alias for --delete. Therefore, the version of Git you have installed will dictate whether you need to use the easier or harder syntax.\nDelete Remote Branch [Original Answer from 5-Jan-2010]\nFrom Chapter 3 of Pro Git by Scott Chacon:\n\nDeleting Remote Branches\nSuppose you\u2019re done with a remote branch \u2014 say, you and your collaborators are finished with a feature and have merged it into your remote\u2019s main branch (or whatever branch your stable code-line is in). You can delete a remote branch using the rather obtuse syntax git push [remotename] :[branch]. If you want to delete your serverfix branch from the server, you run the following:\n\n```\n$ git push origin :serverfix\nTo git@github.com:schacon/simplegit.git\n - [deleted]         serverfix\n\n```\n\nBoom. No more branches on your server. You may want to dog-ear this page, because you\u2019ll need that command, and you\u2019ll likely forget the syntax. A way to remember this command is by recalling the git push [remotename] [localbranch]:[remotebranch] syntax that we went over a bit earlier. If you leave off the [localbranch] portion, then you\u2019re basically saying, \u201cTake nothing on my side and make it be [remotebranch].\u201d\n\nI ran git push origin :bugfix, and it worked beautifully. Scott Chacon was right\u2014I will want to dog-ear that page (or virtually dog ear-by answering this on Stack Overflow).\nFetch changes\nFinally, execute the following on other machines to propagate changes:\n\n```\n# Fetch changes from all remotes and locally delete \n# remote deleted branches/tags etc\n# --prune will do the job :-;\ngit fetch --all --prune\n\n```",
+        "votes": 26561,
+        "accepted": true,
+        "created_at": "2010-01-05T01:13:55"
+      }
+    },
+    {
+      "topic": "git",
+      "question": {
+        "id": 292357,
+        "title": "What is the difference between &#39;git pull&#39; and &#39;git fetch&#39;?",
+        "body": "What are the differences between git pull and git fetch?",
+        "url": "https://stackoverflow.com/questions/292357/what-is-the-difference-between-git-pull-and-git-fetch",
+        "votes": 13992,
+        "tags": [
+          "git",
+          "version-control",
+          "git-pull",
+          "git-fetch"
+        ],
+        "created_at": "2008-11-15T09:51:09"
+      },
+      "answer": {
+        "id": 292359,
+        "body": "In the simplest terms, git pull does a git fetch followed by a git merge.\n\ngit fetch updates your remote-tracking branches under refs/remotes/<remote>/. This operation is safe to run at any time since it never changes any of your local branches under refs/heads.\ngit pull brings a local branch up-to-date with its remote version, while also updating your other remote-tracking branches.\nFrom the Git documentation for git pull:\n\ngit pull runs git fetch with the given parameters and then depending on configuration options or command line flags, will call either git rebase or git merge to reconcile diverging branches.",
+        "votes": 11640,
+        "accepted": true,
+        "created_at": "2008-11-15T09:52:40"
+      }
+    },
+    {
+      "topic": "git",
+      "question": {
+        "id": 6591213,
+        "title": "How can I rename a local Git branch?",
+        "body": "How can I rename a local branch which has not yet been pushed to a remote repository?\nRelated:\n\nRename master branch for both local and remote Git repositories\nHow do I rename both a Git local and remote branch name?",
+        "url": "https://stackoverflow.com/questions/6591213/how-can-i-rename-a-local-git-branch",
+        "votes": 11932,
+        "tags": [
+          "git",
+          "version-control",
+          "git-branch"
+        ],
+        "created_at": "2011-07-06T03:20:36"
+      },
+      "answer": {
+        "id": 6591218,
+        "body": "To rename the current branch:\n\n```\ngit branch -m <newname>\n\n```\n\nTo rename a branch while pointed to any branch:\n\n```\ngit branch -m <oldname> <newname>\n\n```\n\n-m is short for --move.\n\nTo push the  local branch and reset the upstream branch:\n\n```\ngit push origin -u <newname>\n\n```\n\nTo delete the  remote branch:\n\n```\ngit push origin --delete <oldname>\n\n```\n\n\nTo create a git rename alias:\n\n```\ngit config --global alias.rename 'branch -m'\n\n```\n\n\nOn Windows or another case-insensitive filesystem, use -M if there are only capitalization changes in the name. Otherwise, Git will throw a \"branch already exists\" error.\n\n```\ngit branch -M <newname>\n\n```",
+        "votes": 19516,
+        "accepted": true,
+        "created_at": "2011-07-06T03:21:42"
+      }
+    },
+    {
+      "topic": "git",
+      "question": {
+        "id": 348170,
+        "title": "How do I undo &#39;git add&#39; before commit?",
+        "body": "I mistakenly added files to Git using the command:\n\n```\ngit add myfile.txt\n\n```\n\nI have not yet run git commit. How do I undo this so that these changes will not be included in the commit?",
+        "url": "https://stackoverflow.com/questions/348170/how-do-i-undo-git-add-before-commit",
+        "votes": 11553,
+        "tags": [
+          "git",
+          "git-commit",
+          "undo",
+          "git-add"
+        ],
+        "created_at": "2008-12-07T21:57:46"
+      },
+      "answer": {
+        "id": 348234,
+        "body": "To unstage a specific file\n\n```\ngit reset <file>\n\n```\n\nThat will remove the file from the current index (the \"about to be committed\" list) without changing anything else.\nTo unstage all files from the current change set:\n\n```\ngit reset\n\n```\n\n\nIn old versions of Git, the above commands are equivalent to git reset HEAD <file> and git reset HEAD respectively, and will fail if HEAD is undefined (because you haven't yet made any commits in your repository) or ambiguous (because you created a branch called HEAD, which is a stupid thing that you shouldn't do). This was changed in Git 1.8.2, though, so in modern versions of Git you can use the commands above even prior to making your first commit:\n\n\"git reset\" (without options or parameters) used to error out when\nyou do not have any commits in your history, but it now gives you\nan empty index (to match non-existent commit you are not even on).\n\nDocumentation: git reset",
+        "votes": 13796,
+        "accepted": true,
+        "created_at": "2008-12-07T22:30:48"
+      }
+    },
+    {
+      "topic": "bash",
+      "question": {
+        "id": 59895,
+        "title": "How do I get the directory where a Bash script is located from within the script itself?",
+        "body": "How do I get the path of the directory in which a Bash script is located, inside that script?\nI want to use a Bash script as a launcher for another application. I want to change the working directory to the one where the Bash script is located, so I can operate on the files in that directory, like so:\n\n```\n$ ./application\n\n```",
+        "url": "https://stackoverflow.com/questions/59895/how-do-i-get-the-directory-where-a-bash-script-is-located-from-within-the-script",
+        "votes": 6374,
+        "tags": [
+          "bash",
+          "directory"
+        ],
+        "created_at": "2008-09-12T20:39:56"
+      },
+      "answer": {
+        "id": 246128,
+        "body": "```\n#!/usr/bin/env bash\n\nSCRIPT_DIR=$( cd -- \"$( dirname -- \"${BASH_SOURCE[0]}\" )\" &> /dev/null && pwd )\n\n```\n\nis a useful one-liner which will give you the full directory name of the script no matter where it is being called from.\nIt will work as long as the last component of the path used to find the script is not a symlink (directory links are OK).  If you also want to resolve any links to the script itself, you need a multi-line solution:\n\n```\n#!/usr/bin/env bash\n\nget_script_dir()\n{\n    local SOURCE_PATH=\"${BASH_SOURCE[0]}\"\n    local SYMLINK_DIR\n    local SCRIPT_DIR\n    # Resolve symlinks recursively\n    while [ -L \"$SOURCE_PATH\" ]; do\n        # Get symlink directory\n        SYMLINK_DIR=\"$( cd -P \"$( dirname \"$SOURCE_PATH\" )\" >/dev/null 2>&1 && pwd )\"\n        # Resolve symlink target (relative or absolute)\n        SOURCE_PATH=\"$(readlink \"$SOURCE_PATH\")\"\n        # Check if candidate path is relative or absolute\n        if [[ $SOURCE_PATH != /* ]]; then\n            # Candidate path is relative, resolve to full path\n            SOURCE_PATH=$SYMLINK_DIR/$SOURCE_PATH\n        fi\n    done\n    # Get final script directory path from fully resolved source path\n    SCRIPT_DIR=\"$(cd -P \"$( dirname \"$SOURCE_PATH\" )\" >/dev/null 2>&1 && pwd)\"\n    echo \"$SCRIPT_DIR\"\n}\n\necho \"get_script_dir: $(get_script_dir)\"\n\n```\n\nThis last one will work with any combination of aliases, source, bash -c, symlinks, etc.\nBeware: if you cd to a different directory before running this snippet, the result may be incorrect!\nAlso, watch out for $CDPATH gotchas, and stderr output side effects if the user has smartly overridden cd to redirect output to stderr instead (including escape sequences, such as when calling update_terminal_cwd >&2 on Mac). Adding >/dev/null 2>&1 at the end of your cd command will take care of both possibilities.\nTo understand how it works, try running this more verbose form:\n\n```\n#!/usr/bin/env bash\n\nSOURCE=${BASH_SOURCE[0]}\nwhile [ -L \"$SOURCE\" ]; do # resolve $SOURCE until the file is no longer a symlink\n  TARGET=$(readlink \"$SOURCE\")\n  if [[ $TARGET == /* ]]; then\n    echo \"SOURCE '$SOURCE' is an absolute symlink to '$TARGET'\"\n    SOURCE=$TARGET\n  else\n    DIR=$( dirname \"$SOURCE\" )\n    echo \"SOURCE '$SOURCE' is a relative symlink to '$TARGET' (relative to '$DIR')\"\n    SOURCE=$DIR/$TARGET # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located\n  fi\ndone\necho \"SOURCE is '$SOURCE'\"\nRDIR=$( dirname \"$SOURCE\" )\nDIR=$( cd -P \"$( dirname \"$SOURCE\" )\" >/dev/null 2>&1 && pwd )\nif [ \"$DIR\" != \"$RDIR\" ]; then\n  echo \"DIR '$RDIR' resolves to '$DIR'\"\nfi\necho \"DIR is '$DIR'\"\n\n```\n\nAnd it will print something like:\n\n```\nSOURCE './scriptdir.sh' is a relative symlink to 'sym2/scriptdir.sh' (relative to '.')\nSOURCE is './sym2/scriptdir.sh'\nDIR './sym2' resolves to '/home/ubuntu/dotfiles/fo fo/real/real1/real2'\nDIR is '/home/ubuntu/dotfiles/fo fo/real/real1/real2'\n\n```",
+        "votes": 8236,
+        "accepted": true,
+        "created_at": "2008-10-29T08:36:45"
+      }
+    },
+    {
+      "topic": "bash",
+      "question": {
+        "id": 59838,
+        "title": "How do I check if a directory exists or not in a Bash shell script?",
+        "body": "What command checks if a directory exists or not within a Bash shell script?",
+        "url": "https://stackoverflow.com/questions/59838/how-do-i-check-if-a-directory-exists-or-not-in-a-bash-shell-script",
+        "votes": 4537,
+        "tags": [
+          "bash",
+          "shell",
+          "unix",
+          "command",
+          "posix"
+        ],
+        "created_at": "2008-09-12T20:06:25"
+      },
+      "answer": {
+        "id": 59839,
+        "body": "To check if a directory exists:\n\n```\nif [ -d \"$DIRECTORY\" ]; then\n  echo \"$DIRECTORY does exist.\"\nfi\n\n```\n\nTo check if a directory does not exist:\n\n```\nif [ ! -d \"$DIRECTORY\" ]; then\n  echo \"$DIRECTORY does not exist.\"\nfi\n\n```\n\n\nHowever, as Jon Ericson points out, subsequent commands may not work as intended if you do not take into account that a symbolic link to a directory will also pass this check.\nE.g. running this:\n\n```\nln -s \"$ACTUAL_DIR\" \"$SYMLINK\"\nif [ -d \"$SYMLINK\" ]; then \n  rmdir \"$SYMLINK\" \nfi\n\n```\n\nWill produce the error message:\n\n```\nrmdir: failed to remove `symlink': Not a directory\n\n```\n\nSo symbolic links may have to be treated differently, if subsequent commands expect directories:\n\n```\nif [ -d \"$LINK_OR_DIR\" ]; then \n  if [ -L \"$LINK_OR_DIR\" ]; then\n    # It is a symlink!\n    # Symbolic link specific commands go here.\n    rm \"$LINK_OR_DIR\"\n  else\n    # It's a directory!\n    # Directory command goes here.\n    rmdir \"$LINK_OR_DIR\"\n  fi\nfi\n\n```\n\n\nTake particular note of the double-quotes used to wrap the variables. The reason for this is explained by 8jean in another answer.\nIf the variables contain spaces or other unusual characters it will probably cause the script to fail.",
+        "votes": 6123,
+        "accepted": true,
+        "created_at": "2008-09-12T20:07:06"
+      }
+    },
+    {
+      "topic": "bash",
+      "question": {
+        "id": 638975,
+        "title": "How do I tell if a file does not exist in Bash?",
+        "body": "This checks if a file exists:\n\n```\n#!/bin/bash\n\nFILE=$1     \nif [ -f $FILE ]; then\n   echo \"File $FILE exists.\"\nelse\n   echo \"File $FILE does not exist.\"\nfi\n\n```\n\nHow do I only check if the file does not exist?",
+        "url": "https://stackoverflow.com/questions/638975/how-do-i-tell-if-a-file-does-not-exist-in-bash",
+        "votes": 4135,
+        "tags": [
+          "bash",
+          "file-io",
+          "scripting"
+        ],
+        "created_at": "2009-03-12T14:48:43"
+      },
+      "answer": {
+        "id": 638980,
+        "body": "The test command (written as [ here) has a \"not\" logical operator, ! (exclamation mark):\n\n```\nif [ ! -f /tmp/foo.txt ]; then\n    echo \"File not found!\"\nfi\n\n```",
+        "votes": 5575,
+        "accepted": true,
+        "created_at": "2009-03-12T14:50:01"
+      }
+    },
+    {
+      "topic": "bash",
+      "question": {
+        "id": 8467424,
+        "title": "Echo newline in Bash prints literal \\n",
+        "body": "How do I print a newline? This merely prints \\n:\n\n```\necho -e \"Hello,\\nWorld!\"\n\n```\n\nOutput:\n\n```\nHello,\\nWorld!\n\n```",
+        "url": "https://stackoverflow.com/questions/8467424/echo-newline-in-bash-prints-literal-n",
+        "votes": 3647,
+        "tags": [
+          "bash",
+          "echo",
+          "newline"
+        ],
+        "created_at": "2011-12-11T21:01:54"
+      },
+      "answer": {
+        "id": 8467449,
+        "body": "Use printf instead:\n\n```\nprintf \"hello\\nworld\\n\"\n\n```\n\nprintf behaves more consistently across different environments than echo.",
+        "votes": 4286,
+        "accepted": true,
+        "created_at": "2011-12-11T21:04:56"
+      }
+    },
+    {
+      "topic": "bash",
+      "question": {
+        "id": 229551,
+        "title": "How to check if a string contains a substring in Bash",
+        "body": "I have a string in Bash:\n\n```\nstring=\"My string\"\n\n```\n\nHow can I test if it contains another string?\n\n```\nif [ $string ?? 'foo' ]; then\n  echo \"It's there!\"\nfi\n\n```\n\nWhere ?? is my unknown operator. Do I use echo and grep?\n\n```\nif echo \"$string\" | grep 'foo'; then\n  echo \"It's there!\"\nfi\n\n```\n\nThat looks a bit clumsy.",
+        "url": "https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash",
+        "votes": 3637,
+        "tags": [
+          "string",
+          "bash",
+          "shell",
+          "substring",
+          "sh"
+        ],
+        "created_at": "2008-10-23T12:37:31"
+      },
+      "answer": {
+        "id": 229606,
+        "body": "You can use Marcus's answer (* wildcards) outside a case statement, too, if you use double brackets:\n\n```\nstring='My long string'\nif [[ $string == *\"My long\"* ]]; then\n  echo \"It's there!\"\nfi\n\n```\n\nNote that spaces in the needle string need to be placed between double quotes, and the * wildcards should be outside. Also note that a simple comparison operator is used (i.e. ==), not the regex operator =~.",
+        "votes": 4991,
+        "accepted": true,
+        "created_at": "2008-10-23T12:55:24"
+      }
+    },
+    {
+      "topic": "tar",
+      "question": {
+        "id": 984204,
+        "title": "Shell command to tar directory excluding certain files/folders",
+        "body": "Is there a simple shell command/script that supports excluding certain files/folders from being archived?\nI have a directory that need to be archived with a sub directory that has a number of very large files I do not need to backup.\nNot quite solutions:\nThe tar --exclude=PATTERN command matches the given pattern and excludes those files, but I need specific files & folders to be ignored (full file path), otherwise valid files might be excluded.\nI could also use the find command to create a list of files and exclude the ones I don't want to archive and pass the list to tar, but that only works with for a small amount of files. I have tens of thousands.\nI'm beginning to think the only solution is to create a file with a list of files/folders to be excluded, then use rsync with --exclude-from=file to copy all the files to a tmp directory, and then use tar to archive that directory.\nCan anybody think of a better/more efficient solution?\nEDIT: Charles Ma's solution works well. The big gotcha is that the --exclude='./folder' MUST be at the beginning of the tar command. Full command (cd first, so backup is relative to that directory):\n\n```\ncd /folder_to_backup\ntar --exclude='./folder' --exclude='./upload/folder2' -zcvf /backup/filename.tgz .\n\n```",
+        "url": "https://stackoverflow.com/questions/984204/shell-command-to-tar-directory-excluding-certain-files-folders",
+        "votes": 1139,
+        "tags": [
+          "linux",
+          "shell",
+          "archive",
+          "tar"
+        ],
+        "created_at": "2009-06-11T22:57:31"
+      },
+      "answer": {
+        "id": 984259,
+        "body": "You can have multiple exclude options for tar so\n\n```\n$ tar --exclude='./folder' --exclude='./upload/folder2' -zcvf /backup/filename.tgz .\n\n```\n\netc will work. Make sure to put --exclude before the source and destination items.",
+        "votes": 1476,
+        "accepted": true,
+        "created_at": "2009-06-11T23:11:19"
+      }
+    },
+    {
+      "topic": "tar",
+      "question": {
+        "id": 939982,
+        "title": "How do I tar a directory of files and folders without including the directory itself?",
+        "body": "I typically do:\n\n```\ntar -czvf my_directory.tar.gz my_directory\n\n```\n\nWhat if I just want to include everything (including any hidden system files) in my_directory, but not the directory itself? I don't want:\n\n```\nmy_directory\n   --- my_file\n   --- my_file\n   --- my_file\n\n```\n\nI want:\n\n```\nmy_file\nmy_file\nmy_file\n\n```",
+        "url": "https://stackoverflow.com/questions/939982/how-do-i-tar-a-directory-of-files-and-folders-without-including-the-directory-it",
+        "votes": 560,
+        "tags": [
+          "archive",
+          "tar",
+          "gzip"
+        ],
+        "created_at": "2009-06-02T14:48:04"
+      },
+      "answer": {
+        "id": 944847,
+        "body": "```\ncd my_directory/ && tar -zcvf ../my_dir.tgz . && cd - \n\n```\n\nshould do the job in one line. It works well for hidden files as well. \"*\" doesn't expand hidden files by path name expansion at least in bash. Below is my experiment:\n\n```\n$ mkdir my_directory\n$ touch my_directory/file1\n$ touch my_directory/file2\n$ touch my_directory/.hiddenfile1\n$ touch my_directory/.hiddenfile2\n$ cd my_directory/ && tar -zcvf ../my_dir.tgz . && cd ..\n./\n./file1\n./file2\n./.hiddenfile1\n./.hiddenfile2\n$ tar ztf my_dir.tgz\n./\n./file1\n./file2\n./.hiddenfile1\n./.hiddenfile2\n\n```",
+        "votes": 276,
+        "accepted": true,
+        "created_at": "2009-06-03T13:46:20"
+      }
+    },
+    {
+      "topic": "tar",
+      "question": {
+        "id": 18681595,
+        "title": "Tar a directory, but don&#39;t store full absolute paths in the archive",
+        "body": "I have the following command in the part of a backup shell script:\n\n```\ntar -cjf site1.bz2 /var/www/site1/\n\n```\n\nWhen I list the contents of the archive, I get:\n\n```\ntar -tf site1.bz2\nvar/www/site1/style.css\nvar/www/site1/index.html\nvar/www/site1/page2.html\nvar/www/site1/page3.html\nvar/www/site1/images/img1.png\nvar/www/site1/images/img2.png\nvar/www/site1/subdir/index.html\n\n```\n\nBut I would like to remove the part /var/www/site1 from directory and file names within the archive, in order to simplify extraction and avoid useless constant directory structure. Never know, in case I would extract backuped websites in a place where web data weren't stored under /var/www.\nFor the example above, I would like to have :\n\n```\ntar -tf site1.bz2\nstyle.css\nindex.html\npage2.html\npage3.html\nimages/img1.png\nimages/img2.png\nsubdir/index.html\n\n```\n\nSo, that when I extract, files are extracted in the current directory and I don't need to move extracted files afterwards, and so that sub-directory structures is preserved.\nThere are already many questions about tar and backuping in stackoverflow and at other places on the web, but most of them ask for dropping the entire sub-directory structure (flattening), or just add or remove the initial / in the names (I don't know what it changes exactly when extracting), but no more.\nAfter having read some of the solutions found here and there as well as the manual, I tried :\n\n```\ntar -cjf site1.bz2 -C . /var/www/site1/\ntar -cjf site1.bz2 -C / /var/www/site1/\ntar -cjf site1.bz2 -C /var/www/site1/ /var/www/site1/\ntar -cjf site1.bz2 --strip-components=3 /var/www/site1/\n\n```\n\nBut none of them worked the way I want. Some do nothing, some others don't archive sub-directories anymore.\nIt's inside a backup shell script launched by a Cron, so I don't know well, which user runs it, what is the path and the current directory, so always writing absolute path is required for everything, and would prefer not changing current directory to avoid breaking something further in the script (because it doesn't only backup websites, but also databases, then send all that to FTP etc.)\nHow to achieve this?\nHave I just misunderstood how the option -C works?",
+        "url": "https://stackoverflow.com/questions/18681595/tar-a-directory-but-dont-store-full-absolute-paths-in-the-archive",
+        "votes": 501,
+        "tags": [
+          "linux",
+          "bash",
+          "backup",
+          "tar"
+        ],
+        "created_at": "2013-09-08T07:43:34"
+      },
+      "answer": {
+        "id": 18681628,
+        "body": "```\ntar -cjf site1.tar.bz2 -C /var/www/site1 .\n\n```\n\nIn the above example, tar will change to directory /var/www/site1 before doing its thing because the option -C /var/www/site1 was given.\nFrom man tar:\n\n```\nOTHER OPTIONS\n\n  -C, --directory DIR\n       change to directory DIR\n\n```",
+        "votes": 624,
+        "accepted": true,
+        "created_at": "2013-09-08T07:49:53"
+      }
+    },
+    {
+      "topic": "tar",
+      "question": {
+        "id": 12313242,
+        "title": "Utilizing multi core for tar+gzip/bzip compression/decompression",
+        "body": "I normally compress using tar zcvf and decompress using tar zxvf (using gzip due to habit). \nI've recently gotten a quad core CPU with hyperthreading, so I have 8 logical cores, and I notice that many of the cores are unused during compression/decompression. \nIs there any way I can utilize the unused cores to make it faster?",
+        "url": "https://stackoverflow.com/questions/12313242/utilizing-multi-core-for-targzip-bzip-compression-decompression",
+        "votes": 323,
+        "tags": [
+          "gzip",
+          "tar",
+          "bzip2",
+          "bzip"
+        ],
+        "created_at": "2012-09-07T06:58:20"
+      },
+      "answer": {
+        "id": 12320421,
+        "body": "You can use pigz instead of gzip, which does gzip compression on multiple cores.  Instead of using the -z option, you would pipe it through pigz:\n\n```\ntar cf - paths-to-archive | pigz > archive.tar.gz\n\n```\n\nBy default, pigz uses the number of available cores, or eight if it could not query that.  You can ask for more with -p n, e.g. -p 32.  pigz has the same options as gzip, so you can request better compression with -9.  E.g.\n\n```\ntar cf - paths-to-archive | pigz -9 -p 32 > archive.tar.gz\n\n```",
+        "votes": 425,
+        "accepted": true,
+        "created_at": "2012-09-07T14:48:01"
+      }
+    },
+    {
+      "topic": "tar",
+      "question": {
+        "id": 18402395,
+        "title": "How to uncompress a tar.gz in another directory",
+        "body": "I have an archive \n\n*.tar.gz\n\nHow can I uncompress this in a destination directory?",
+        "url": "https://stackoverflow.com/questions/18402395/how-to-uncompress-a-tar-gz-in-another-directory",
+        "votes": 305,
+        "tags": [
+          "unix",
+          "tar",
+          "gzip"
+        ],
+        "created_at": "2013-08-23T12:04:28"
+      },
+      "answer": {
+        "id": 18402670,
+        "body": "```\ngzip -dc archive.tar.gz | tar -xf - -C /destination\n\n```\n\nor, with GNU tar\n\n```\ntar xzf archive.tar.gz -C /destination\n\n```",
+        "votes": 123,
+        "accepted": true,
+        "created_at": "2013-08-23T12:18:35"
+      }
+    },
+    {
+      "topic": "gzip",
+      "question": {
+        "id": 20762094,
+        "title": "How are zlib, gzip and zip related? What do they have in common and how are they different?",
+        "body": "The compression algorithm used in zlib is essentially the same as that in gzip and zip. What are gzip and zip? How are they different and how are they same?\n\nMod note: This post is off-topic, but the top-voted answer has historical significance as a primary source.  This post is locked with a Community Wiki lock (rather than a historical lock, as would otherwise be more appropriate) to allow its author to continue to maintain it, should they wish to do so.",
+        "url": "https://stackoverflow.com/questions/20762094/how-are-zlib-gzip-and-zip-related-what-do-they-have-in-common-and-how-are-they",
+        "votes": 1293,
+        "tags": [
+          "compression",
+          "zip",
+          "gzip",
+          "zlib"
+        ],
+        "created_at": "2013-12-24T13:48:49"
+      },
+      "answer": {
+        "id": 20765054,
+        "body": "Short form:\n.zip is an archive format using, usually, the Deflate compression method.  The .gz gzip format is for single files, also using the Deflate compression method.  Often gzip is used in combination with tar to make a compressed archive format, .tar.gz.  The zlib library provides Deflate compression and decompression code for use by zip, gzip, png (which uses the zlib wrapper on deflate data), and many other applications.\nLong form:\nThe ZIP format was developed by Phil Katz as an open format with an open specification, where his implementation, PKZIP, was shareware.  It is an archive format that stores files and their directory structure, where each file is individually compressed.  The file type is .zip.  The files, as well as the directory structure, can optionally be encrypted.\nThe ZIP format supports several compression methods:\n\n```\n    0 - The file is stored (no compression)\n    1 - The file is Shrunk\n    2 - The file is Reduced with compression factor 1\n    3 - The file is Reduced with compression factor 2\n    4 - The file is Reduced with compression factor 3\n    5 - The file is Reduced with compression factor 4\n    6 - The file is Imploded\n    7 - Reserved for Tokenizing compression algorithm\n    8 - The file is Deflated\n    9 - Enhanced Deflating using Deflate64(tm)\n   10 - PKWARE Data Compression Library Imploding (old IBM TERSE)\n   11 - Reserved by PKWARE\n   12 - File is compressed using BZIP2 algorithm\n   13 - Reserved by PKWARE\n   14 - LZMA\n   15 - Reserved by PKWARE\n   16 - IBM z/OS CMPSC Compression\n   17 - Reserved by PKWARE\n   18 - File is compressed using IBM TERSE (new)\n   19 - IBM LZ77 z Architecture \n   20 - deprecated (use method 93 for zstd)\n   93 - Zstandard (zstd) Compression \n   94 - MP3 Compression \n   95 - XZ Compression \n   96 - JPEG variant\n   97 - WavPack compressed data\n   98 - PPMd version I, Rev 1\n   99 - AE-x encryption marker (see APPENDIX E)\n\n```\n\nMethods 1 to 7 are historical and are not in use.  Methods 9 through 98 are relatively recent additions and are in varying, small amounts of use.  The only method in truly widespread use in the ZIP format is method 8, Deflate, and to some smaller extent method 0, which is no compression at all.  Virtually every .zip file that you will come across in the wild will use exclusively methods 8 and 0, likely just method 8.  (Method 8 also has a means to effectively store the data with no compression and relatively little expansion, and Method 0 cannot be streamed whereas Method 8 can be.)\nThe ISO/IEC 21320-1:2015 standard for file containers is a restricted zip format, such as used in Java archive files (.jar), Office Open XML files (Microsoft Office .docx, .xlsx, .pptx), Office Document Format files (.odt, .ods, .odp), and EPUB files (.epub). That standard limits the compression methods to 0 and 8, as well as other constraints such as no encryption or signatures.\nAround 1990, the Info-ZIP group wrote portable, free, open-source implementations of zip and unzip utilities, supporting compression with the Deflate format, and decompression of that and the earlier formats.  This greatly expanded the use of the .zip format.\nIn the early '90s, the gzip format was developed as a replacement for the Unix compress utility, derived from the Deflate code in the Info-ZIP utilities.  Unix compress was designed to compress a single file or stream, appending a .Z to the file name.  compress uses the LZW compression algorithm, which at the time was under patent and its free use was in dispute by the patent holders.  Though some specific implementations of Deflate were patented by Phil Katz, the format was not, and so it was possible to write a Deflate implementation that did not infringe on any patents.  That implementation has not been so challenged in the last 20+ years.  The Unix gzip utility was intended as a drop-in replacement for compress, and in fact is able to decompress compress-compressed data (assuming that you were able to parse that sentence).  gzip appends a .gz to the file name.  gzip uses the Deflate compressed data format, which compresses quite a bit better than Unix compress, has very fast decompression, and adds a CRC-32 as an integrity check for the data.  The header format also permits the storage of more information than the compress format allowed, such as the original file name and the file modification time.\nThough compress only compresses a single file, it was common to use the tar utility to create an archive of files, their attributes, and their directory structure into a single .tar file, and then compress it with compress to make a .tar.Z file.  In fact, the tar utility had and still has the option to do the compression at the same time, instead of having to pipe the output of tar to compress.  This all carried forward to the gzip format, and tar has an option to compress directly to the .tar.gz format.  The tar.gz format compresses better than the .zip approach, since the compression of a .tar can take advantage of redundancy across files, especially many small files.  .tar.gz is the most common archive format in use on Unix due to its very high portability, but there are more effective compression methods in use as well, so you will often see .tar.bz2 and .tar.xz archives.\nUnlike .tar, .zip has a central directory at the end, which provides a list of the contents. That and the separate compression provides random access to the individual entries in a .zip file. A .tar file would have to be decompressed and scanned from start to end in order to build a directory, which is how a .tar file is listed.\nShortly after the introduction of gzip, around the mid-1990s, the same patent dispute called into question the free use of the .gif image format, very widely used on bulletin boards and the World Wide Web (a new thing at the time).  So a small group created the PNG losslessly compressed image format, with file type .png, to replace .gif.  That format also uses the Deflate format for compression, which is applied after filters on the image data expose more of the redundancy.  In order to promote widespread usage of the PNG format, two free code libraries were created.  libpng and zlib.  libpng handled all of the features of the PNG format, and zlib provided the compression and decompression code for use by libpng, as well as for other applications.  zlib was adapted from the gzip code.\nAll of the mentioned patents have since expired.\nThe zlib library supports Deflate compression and decompression, and three kinds of wrapping around the deflate streams.  Those are no wrapping at all (\"raw\" deflate), zlib wrapping, which is used in the PNG format data blocks, and gzip wrapping, to provide gzip routines for the programmer.  The main difference between zlib and gzip wrapping is that the zlib wrapping is more compact, six bytes vs. a minimum of 18 bytes for gzip, and the integrity check, Adler-32, runs faster than the CRC-32 that gzip uses.  Raw deflate is used by programs that read and write the .zip format, which is another format that wraps around deflate compressed data.\nzlib is now in wide use for data transmission and storage.  For example, most HTTP transactions by servers and browsers compress and decompress the data using zlib, specifically HTTP header Content-Encoding: deflate means deflate compression method wrapped inside the zlib data format.\nDifferent implementations of deflate can result in different compressed output for the same input data, as evidenced by the existence of selectable compression levels that allow trading off compression effectiveness for CPU time. zlib and PKZIP are not the only implementations of deflate compression and decompression. Both the 7-Zip archiving utility and Google's zopfli library have the ability to use much more CPU time than zlib in order to squeeze out the last few bits possible when using the deflate format, reducing compressed sizes by a few percent as compared to zlib's highest compression level. The pigz utility, a parallel implementation of gzip, includes the option to use zlib (compression levels 1-9) or zopfli (compression level 11), and somewhat mitigates the time impact of using zopfli by splitting the compression of large files over multiple processors and cores.",
+        "votes": 3274,
+        "accepted": true,
+        "created_at": "2013-12-24T18:03:42"
+      }
+    },
+    {
+      "topic": "gzip",
+      "question": {
+        "id": 939982,
+        "title": "How do I tar a directory of files and folders without including the directory itself?",
+        "body": "I typically do:\n\n```\ntar -czvf my_directory.tar.gz my_directory\n\n```\n\nWhat if I just want to include everything (including any hidden system files) in my_directory, but not the directory itself? I don't want:\n\n```\nmy_directory\n   --- my_file\n   --- my_file\n   --- my_file\n\n```\n\nI want:\n\n```\nmy_file\nmy_file\nmy_file\n\n```",
+        "url": "https://stackoverflow.com/questions/939982/how-do-i-tar-a-directory-of-files-and-folders-without-including-the-directory-it",
+        "votes": 560,
+        "tags": [
+          "archive",
+          "tar",
+          "gzip"
+        ],
+        "created_at": "2009-06-02T14:48:04"
+      },
+      "answer": {
+        "id": 944847,
+        "body": "```\ncd my_directory/ && tar -zcvf ../my_dir.tgz . && cd - \n\n```\n\nshould do the job in one line. It works well for hidden files as well. \"*\" doesn't expand hidden files by path name expansion at least in bash. Below is my experiment:\n\n```\n$ mkdir my_directory\n$ touch my_directory/file1\n$ touch my_directory/file2\n$ touch my_directory/.hiddenfile1\n$ touch my_directory/.hiddenfile2\n$ cd my_directory/ && tar -zcvf ../my_dir.tgz . && cd ..\n./\n./file1\n./file2\n./.hiddenfile1\n./.hiddenfile2\n$ tar ztf my_dir.tgz\n./\n./file1\n./file2\n./.hiddenfile1\n./.hiddenfile2\n\n```",
+        "votes": 276,
+        "accepted": true,
+        "created_at": "2009-06-03T13:46:20"
+      }
+    },
+    {
+      "topic": "gzip",
+      "question": {
+        "id": 12313242,
+        "title": "Utilizing multi core for tar+gzip/bzip compression/decompression",
+        "body": "I normally compress using tar zcvf and decompress using tar zxvf (using gzip due to habit). \nI've recently gotten a quad core CPU with hyperthreading, so I have 8 logical cores, and I notice that many of the cores are unused during compression/decompression. \nIs there any way I can utilize the unused cores to make it faster?",
+        "url": "https://stackoverflow.com/questions/12313242/utilizing-multi-core-for-targzip-bzip-compression-decompression",
+        "votes": 323,
+        "tags": [
+          "gzip",
+          "tar",
+          "bzip2",
+          "bzip"
+        ],
+        "created_at": "2012-09-07T06:58:20"
+      },
+      "answer": {
+        "id": 12320421,
+        "body": "You can use pigz instead of gzip, which does gzip compression on multiple cores.  Instead of using the -z option, you would pipe it through pigz:\n\n```\ntar cf - paths-to-archive | pigz > archive.tar.gz\n\n```\n\nBy default, pigz uses the number of available cores, or eight if it could not query that.  You can ask for more with -p n, e.g. -p 32.  pigz has the same options as gzip, so you can request better compression with -9.  E.g.\n\n```\ntar cf - paths-to-archive | pigz -9 -p 32 > archive.tar.gz\n\n```",
+        "votes": 425,
+        "accepted": true,
+        "created_at": "2012-09-07T14:48:01"
+      }
+    },
+    {
+      "topic": "gzip",
+      "question": {
+        "id": 18402395,
+        "title": "How to uncompress a tar.gz in another directory",
+        "body": "I have an archive \n\n*.tar.gz\n\nHow can I uncompress this in a destination directory?",
+        "url": "https://stackoverflow.com/questions/18402395/how-to-uncompress-a-tar-gz-in-another-directory",
+        "votes": 305,
+        "tags": [
+          "unix",
+          "tar",
+          "gzip"
+        ],
+        "created_at": "2013-08-23T12:04:28"
+      },
+      "answer": {
+        "id": 18402670,
+        "body": "```\ngzip -dc archive.tar.gz | tar -xf - -C /destination\n\n```\n\nor, with GNU tar\n\n```\ntar xzf archive.tar.gz -C /destination\n\n```",
+        "votes": 123,
+        "accepted": true,
+        "created_at": "2013-08-23T12:18:35"
+      }
+    },
+    {
+      "topic": "gzip",
+      "question": {
+        "id": 40743713,
+        "title": "Command Line Tool - Error - xcrun: error: unable to find utility &quot;xcodebuild&quot;, not a developer tool or in PATH",
+        "body": "I am getting this error while building the SwiftJSON framework to the Some Xcode project through Carthage Dependency Manager.\n\nSivaramaiahs-Mac-mini:GZipDemoApp vsoftMacmini5$ carthage update\n  --platform iOS\n*** Fetching GzipSwift\n*** Fetching SwiftyJSON\n*** Checking out GzipSwift at \"3.1.1\"\n*** Downloading SwiftyJSON.framework binary at \"3.1.3\"\n*** xcodebuild output can be found in /var/folders/7m/y0r2mdhn0f16zz1nlt34ypzr0000gn/T/carthage-xcodebuild.apLXCc.log\nA shell task (/usr/bin/xcrun xcodebuild -project\n  /Users/vsoftMacmini5/Desktop/GZipDemoApp/Carthage/Checkouts/GzipSwift/Gzip.xcodeproj\n  CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= CARTHAGE=YES -list)\n  failed with exit code 72:\nxcrun: error: unable to find utility \"xcodebuild\", not a developer\n  tool or in PATH",
+        "url": "https://stackoverflow.com/questions/40743713/command-line-tool-error-xcrun-error-unable-to-find-utility-xcodebuild-n",
+        "votes": 299,
+        "tags": [
+          "command-line",
+          "installation",
+          "swift3",
+          "gzip",
+          "carthage"
+        ],
+        "created_at": "2016-11-22T13:55:10"
+      },
+      "answer": {
+        "id": 41536029,
+        "body": "I solved that problem by setting the Command Line Tools in Xcode. Go to:\n\nXcode > Preferences > Locations\n\nAnd select the command line tool from the dropdown. If you have only one version of Xcode installed, there should be only one option. If you have several versions of Xcode, then you must choose the one you need.\nUpdate (added image for reference)",
+        "votes": 899,
+        "accepted": true,
+        "created_at": "2017-01-08T18:09:07"
+      }
+    },
+    {
+      "topic": "grep",
+      "question": {
+        "id": 16956810,
+        "title": "Find all files containing a specific text (string) on Linux?",
+        "body": "How do I find all files containing a specific string of text within their file contents?\nThe following doesn't work. It seems to display every single file in the system.\n\n```\nfind / -type f -exec grep -H 'text-to-find-here' {} \\;\n\n```",
+        "url": "https://stackoverflow.com/questions/16956810/find-all-files-containing-a-specific-text-string-on-linux",
+        "votes": 7683,
+        "tags": [
+          "linux",
+          "text",
+          "grep",
+          "directory",
+          "find"
+        ],
+        "created_at": "2013-06-06T08:06:45"
+      },
+      "answer": {
+        "id": 16957078,
+        "body": "Do the following:\n\n```\ngrep -rnw '/path/to/somewhere/' -e 'pattern'\n\n```\n\n\n-r or -R is recursive,\n-n is line number, and\n-w stands for match the whole word.\n-l (lower-case L) can be added to just give the file name of matching files.\n-e is the pattern used during the search\n\nAlong with these, --exclude, --include, --exclude-dir flags could be used for efficient searching:\n\nThis will only search through those files which have .c or .h extensions:\n\n```\ngrep --include=\\*.{c,h} -rnw '/path/to/somewhere/' -e \"pattern\"\n\n```\n\n\nThis will exclude searching all the files ending with .o extension:\n\n```\ngrep --exclude=\\*.o -rnw '/path/to/somewhere/' -e \"pattern\"\n\n```\n\n\nFor directories it's possible to exclude one or more directories using the --exclude-dir parameter. For example, this will exclude the dirs dir1/, dir2/ and all of them matching *.dst/:\n\n```\ngrep --exclude-dir={dir1,dir2,*.dst} -rnw '/path/to/search/' -e \"pattern\"\n\n```\n\n\n\nThis works very well for me, to achieve almost the same purpose like yours.\nFor more options, see man grep.",
+        "votes": 13967,
+        "accepted": true,
+        "created_at": "2013-06-06T08:21:35"
+      }
+    },
+    {
+      "topic": "grep",
+      "question": {
+        "id": 9081,
+        "title": "grep: show lines surrounding each match",
+        "body": "How do I grep and show the preceding and following 5 lines surrounding each matched line?",
+        "url": "https://stackoverflow.com/questions/9081/grep-show-lines-surrounding-each-match",
+        "votes": 4130,
+        "tags": [
+          "search",
+          "logging",
+          "grep",
+          "command-line-interface"
+        ],
+        "created_at": "2008-08-12T17:55:32"
+      },
+      "answer": {
+        "id": 9083,
+        "body": "For BSD or GNU grep you can use -B num to set how many lines before the match and -A num for the number of lines after the match.\n\n```\ngrep -B 3 -A 2 foo README.txt\n\n```\n\nIf you want the same number of lines before and after you can use -C num.\n\n```\ngrep -C 3 foo README.txt\n\n```\n\nThis will show 3 lines before and 3 lines after.",
+        "votes": 5418,
+        "accepted": true,
+        "created_at": "2008-08-12T17:57:43"
+      }
+    },
+    {
+      "topic": "grep",
+      "question": {
+        "id": 1987926,
+        "title": "How do I recursively grep all directories and subdirectories?",
+        "body": "How do I recursively grep all directories and subdirectories?\n\n```\nfind . | xargs grep \"texthere\" *\n\n```",
+        "url": "https://stackoverflow.com/questions/1987926/how-do-i-recursively-grep-all-directories-and-subdirectories",
+        "votes": 2238,
+        "tags": [
+          "linux",
+          "unix",
+          "grep"
+        ],
+        "created_at": "2010-01-01T05:10:12"
+      },
+      "answer": {
+        "id": 1987928,
+        "body": "```\ngrep -r \"texthere\" .\n\n```\n\nThe first parameter represents the regular expression to search for, while the second one represents the directory that should be searched. In this case, . means the current directory.\nNote: This works for GNU grep, and on some platforms like Solaris you must specifically use GNU grep as opposed to legacy implementation.  For Solaris this is the ggrep command.",
+        "votes": 3224,
+        "accepted": true,
+        "created_at": "2010-01-01T05:11:30"
+      }
+    },
+    {
+      "topic": "grep",
+      "question": {
+        "id": 2928584,
+        "title": "How to grep (search through) committed code in the Git history",
+        "body": "I have deleted a file or some code in a file sometime in the past. Can I search through the content (not just the commit messages)?\nA very poor solution is to grep the log:\n\n```\ngit log -p | grep <pattern>\n\n```\n\nHowever, this doesn't return the commit hash straight away. I played around with git grep to no avail.",
+        "url": "https://stackoverflow.com/questions/2928584/how-to-grep-search-through-committed-code-in-the-git-history",
+        "votes": 1984,
+        "tags": [
+          "git",
+          "grep",
+          "diff"
+        ],
+        "created_at": "2010-05-28T11:36:06"
+      },
+      "answer": {
+        "id": 2928721,
+        "body": "You should use the pickaxe (-S) option of git log.\nTo search for Foo:\n\n```\ngit log -SFoo -- path_containing_change\ngit log -SFoo --since=2009.1.1 --until=2010.1.1 -- path_containing_change\n\n```\n\nSee Git history - find lost line by keyword for more.\n-S (named pickaxe) comes originally from a git diff option (Git v0.99, May 2005).\nThen -S (pickaxe) was ported to git log in May 2006 with Git 1.4.0-rc1.\n\nAs Jakub Nar\u0119bski commented:\n\nthis looks for differences that introduce or remove an instance of <string>.\nIt usually means \"revisions where you added or removed line with 'Foo'\".\n\nthe --pickaxe-regex option allows you to use extended POSIX regex instead of searching for a string.\nExample (from git log): git log -S\"frotz\\(nitfol\" --pickaxe-regex\n\n\n\nAs Rob commented, this search is case-sensitive - he opened a follow-up question on how to search case-insensitive.\n\nHi Angel notes in the comments:\n\nExecuting a git log -G<regexp> --branches --all (the -G is same as -S but for regexes) does same thing as the accepted one (git grep <regexp> $(git rev-list --all)), but it soooo much faster!\nThe accepted answer was still searching for text after \u224810 minutes of me running it, whereas this one gives results after \u22484 seconds \ud83e\udd37\u200d\u2642\ufe0f.\nThe output here is more useful as well",
+        "votes": 791,
+        "accepted": true,
+        "created_at": "2010-05-28T11:57:01"
+      }
+    },
+    {
+      "topic": "grep",
+      "question": {
+        "id": 6637882,
+        "title": "How can I use grep to show just filenames on Linux?",
+        "body": "How can I use grep to show just file-names (no in-line matches) on Linux?\nI am usually using something like:\n\n```\nfind . -iname \"*php\" -exec grep -H myString {} \\;\n\n```\n\nHow can I just get the file-names (with paths), but without the matches? Do I have to use xargs? I didn't see a way to do this on my grep man page.",
+        "url": "https://stackoverflow.com/questions/6637882/how-can-i-use-grep-to-show-just-filenames-on-linux",
+        "votes": 1534,
+        "tags": [
+          "linux",
+          "grep"
+        ],
+        "created_at": "2011-07-09T22:24:53"
+      },
+      "answer": {
+        "id": 6637894,
+        "body": "The standard option grep -l (that is a lowercase L) could do this.\nFrom the Unix standard:\n\n```\n-l\n    (The letter ell.) Write only the names of files containing selected\n    lines to standard output. Pathnames are written once per file searched.\n    If the standard input is searched, a pathname of (standard input) will\n    be written, in the POSIX locale. In other locales, standard input may be\n    replaced by something more appropriate in those locales.\n\n```\n\nYou also do not need -H in this case.",
+        "votes": 2334,
+        "accepted": true,
+        "created_at": "2011-07-09T22:26:52"
+      }
+    },
+    {
+      "topic": "venv",
+      "question": {
+        "id": 79605465,
+        "title": "No module named pip in venv but pip installed",
+        "body": "I work in WSL Ubuntu. After instalation python3.13 dependencies from my previous projects stopped working. Venv with python 3.12 stopped activate in vscode interface. ErrorMessage:\n\nAn Invalid Python interpreter is selected, please try changing it to enable features such as IntelliSense, linting, and debugging. See output for more details regarding why the interpreter is invalid.\n\ncommand \"source venv/bin/activate\" works but all libraries \"could not be resolvedPylance\". When I try reinstal I see error:\n\nModuleNotFoundError: No module named 'pip'\n\nBut pip installed in this venv. I can see it folders. init and main files etc.\nI have pip for python3.12 and I have -m venv for python 3.12. I can recreate this venv but why I can`t turn it on properly?\nTried reinstall venv and pip for python3.12.\npython3 -m ensurepip is ok:\n\nRequirement already satisfied: pip in /usr/lib/python3/dist-packages (24.0)\n\nBut python3.12 -m ensurepip\n\nensurepip is disabled in Debian/Ubuntu for the system python.\n\npython3.12 -m pip --version is working also as python3.12 -m pip install and python3.12 -m pip --upgrade pip",
+        "url": "https://stackoverflow.com/questions/79605465/no-module-named-pip-in-venv-but-pip-installed",
+        "votes": 4,
+        "tags": [
+          "python",
+          "ubuntu",
+          "pip",
+          "windows-subsystem-for-linux",
+          "venv"
+        ],
+        "created_at": "2025-05-04T09:19:01"
+      },
+      "answer": {
+        "id": 79605474,
+        "body": "I ran into the exact same problem after installing Python 3.13 on WSL. Suddenly, all my existing virtual environments (created with Python 3.12) broke in VSCode. I was getting the \"Invalid Python interpreter\" error, Pylance couldn't resolve any imports, and pip appeared to be missing\u2014even though I could see it in the venv/bin folder.\nHere\u2019s what fixed it for me:\nFirst, check what your system python3 now points to:\n\n```\npython3 --version\nwhich python3\n\n```\n\nIn my case, it was now Python 3.13, which explains why stuff started breaking. Your virtual environment still points to the Python 3.12 binary internally, but VSCode (and maybe even pip) is trying to use 3.13 instead.\nYou can confirm that by looking at the pyvenv.cfg file inside your venv:\n\n```\ncat venv/pyvenv.cfg\n\n```\n\nYou should see something like:\n\n```\nhome = /usr/bin/python3.12\n\n```\n\nIf that's the case, then you just need to tell VSCode to use that exact interpreter. Open the command palette (Ctrl+Shift+P) in VSCode, choose \u201cPython: Select Interpreter\u201d, and manually select the path to your virtualenv\u2019s Python binary:\n\n```\n/path/to/your/venv/bin/python\n\n```\n\nAlso, double-check the shebang in your pip script:\n\n```\nhead -n 1 venv/bin/pip\n\n```\n\nIf it says #!/usr/bin/python3, that might now point to Python 3.13, which breaks the venv. You can fix this by rebuilding the venv with the correct Python version:\n\n```\npython3.12 -m venv --upgrade-deps venv\n\n```\n\nOr, if that doesn\u2019t work cleanly:\n\n```\nrm -rf venv\npython3.12 -m venv venv\nsource venv/bin/activate\npip install -r requirements.txt\n\n```\n\nAnd yeah, ensurepip being disabled for system Python is normal on Ubuntu. Just make sure you have the necessary packages installed:\n\n```\nsudo apt install python3.12-venv python3.12-distutils\n\n```\n\nOnce I manually selected the right interpreter in VSCode and fixed the pip shebang, everything worked again\u2014IntelliSense, linting, imports, etc. Hope that helps.",
+        "votes": 3,
+        "accepted": true,
+        "created_at": "2025-05-04T09:28:24"
+      }
+    },
+    {
+      "topic": "venv",
+      "question": {
+        "id": 79441934,
+        "title": "python venv install skips component file &quot;pointer.png&quot;",
+        "body": "This is a strange issue. I maintain the pi3d python module and it contains this file\ngithub.com/tipam/pi3d/blob/master/src/pi3d/util/icons/pointer.png\nWhen I clone the repo locally it has the .png file but when the package is installed using pip it seems to be missing. This didn't used to be a problem. Is it something to do with the fact that pip insists on installing to a venv now, i.e. if I made pip install with --no-warn-script-location would it include the missing file?",
+        "url": "https://stackoverflow.com/questions/79441934/python-venv-install-skips-component-file-pointer-png",
+        "votes": 1,
+        "tags": [
+          "python",
+          "pip",
+          "venv"
+        ],
+        "created_at": "2025-02-15T16:59:47"
+      },
+      "answer": {
+        "id": 79442061,
+        "body": "It's because it's not present in tool.setuptools.package-data in pyproject.toml file.\n\n```\n[tool.setuptools.package-data]\n\"*\" = [\"*.fs\", \"*.vs\", \"*.inc\", \"*.gif\"]\n\n```\n\nWith the previous configuration, you add all this extensions in your package as you can see in the next screenshot (content of the package uploaded on pypi).\n\nSo adding the png extension should work:\n\n```\n[tool.setuptools.package-data]\n\"*\" = [\"*.fs\", \"*.vs\", \"*.inc\", \"*.gif\", \"*.png\"]\n\n```",
+        "votes": 1,
+        "accepted": true,
+        "created_at": "2025-02-15T18:52:18"
+      }
+    },
+    {
+      "topic": "docker",
+      "question": {
+        "id": 16047306,
+        "title": "How is Docker different from a virtual machine?",
+        "body": "I keep rereading the Docker documentation to try to understand the difference between Docker and a full VM. How does it manage to provide a full filesystem, isolated networking environment, etc. without being as heavy?\nWhy is deploying software to a Docker image (if that's the right term) easier than simply deploying to a consistent production environment?",
+        "url": "https://stackoverflow.com/questions/16047306/how-is-docker-different-from-a-virtual-machine",
+        "votes": 4492,
+        "tags": [
+          "docker",
+          "virtual-machine"
+        ],
+        "created_at": "2013-04-16T21:19:47"
+      },
+      "answer": {
+        "id": 16048358,
+        "body": "Docker originally used LinuX Containers (LXC), but later switched to runC (formerly known as libcontainer), which runs in the same operating system as its host. This allows it to share a lot of the host operating system resources. Also, it uses a layered filesystem (AuFS) and manages networking.\nAuFS is a layered file system, so you can have a read only part and a write part which are merged together. One could have the common parts of the operating system as read only (and shared amongst all of your containers) and then give each container its own mount for writing.\nSo, let's say you have a 1\u00a0GB container image; if you wanted to use a full VM, you would need to have 1\u00a0GB x number of VMs you want. With Docker and AuFS you can share the bulk of the 1\u00a0GB between all the containers and if you have 1000 containers you still might only have a little over 1\u00a0GB of space for the containers OS (assuming they are all running the same OS image).\nA full virtualized system gets its own set of resources allocated to it, and does minimal sharing. You get more isolation, but it is much heavier (requires more resources). With Docker you get less isolation, but the containers are lightweight (require fewer resources). So you could easily run thousands of containers on a host, and it won't even blink. Try doing that with Xen, and unless you have a really big host, I don't think it is possible.\nA full virtualized system usually takes minutes to start, whereas Docker/LXC/runC containers take seconds, and often even less than a second.\nThere are pros and cons for each type of virtualized system. If you want full isolation with guaranteed resources, a full VM is the way to go. If you just want to isolate processes from each other and want to run a ton of them on a reasonably sized host, then Docker/LXC/runC seems to be the way to go.\nFor more information, check out this set of blog posts which do a good job of explaining how LXC works.\n\nWhy is deploying software to a docker image (if that's the right term) easier than simply deploying to a consistent production environment?\n\nDeploying a consistent production environment is easier said than done. Even if you use tools like Chef and Puppet, there are always OS updates and other things that change between hosts and environments.\nDocker gives you the ability to snapshot the OS into a shared image, and makes it easy to deploy on other Docker hosts. Locally, dev, qa, prod, etc.: all the same image. Sure you can do this with other tools, but not nearly as easily or fast.\nThis is great for testing; let's say you have thousands of tests that need to connect to a database, and each test needs a pristine copy of the database and will make changes to the data. The classic approach to this is to reset the database after every test either with custom code or with tools like Flyway - this can be very time-consuming and means that tests must be run serially. However, with Docker you could create an image of your database and run up one instance per test, and then run all the tests in parallel since you know they will all be running against the same snapshot of the database. Since the tests are running in parallel and in Docker containers they could run all on the same box at the same time and should finish much faster. Try doing that with a full VM.\nFrom comments...\n\nInteresting! I suppose I'm still confused by the notion of \"snapshot[ting] the OS\". How does one do that without, well, making an image of the OS?\n\nWell, let's see if I can explain. You start with a base image, and then make your changes, and commit those changes using docker, and it creates an image. This image contains only the differences from the base. When you want to run your image, you also need the base, and it layers your image on top of the base using a layered file system: as mentioned above, Docker uses AuFS. AuFS merges the different layers together and you get what you want; you just need to run it. You can keep adding more and more images (layers) and it will continue to only save the diffs. Since Docker typically builds on top of ready-made images from a registry, you rarely have to \"snapshot\" the whole OS yourself.",
+        "votes": 4036,
+        "accepted": true,
+        "created_at": "2013-04-16T22:35:27"
+      }
+    },
+    {
+      "topic": "docker",
+      "question": {
+        "id": 24319662,
+        "title": "From inside of a Docker container, how do I connect to the localhost of the machine?",
+        "body": "I have an Nginx instance running inside a Docker container. I have a MySQL running on the host system. I want to connect to the MySQL from within my container. MySQL is only binding to the localhost device.\nIs there a way to connect to this MySQL or any other program on localhost from within this docker container?\nThis question is different from \"How to get the IP address of the Docker host from inside a Docker container\" due to the fact that the IP address of the Docker host could be the public IP address or the private IP address in the network which may or may not be reachable from within the Docker container (I mean public IP address if hosted at AWS or something).\nEven if you have the IP address of the Docker host, it does not mean you can connect to the Docker host from within the container, given that IP address as your Docker network may be overlay, host, bridge, macvlan, none. etc., which restricts the reachability of that IP address.",
+        "url": "https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach",
+        "votes": 3541,
+        "tags": [
+          "docker",
+          "nginx",
+          "docker-container",
+          "docker-network"
+        ],
+        "created_at": "2014-06-20T03:54:16"
+      },
+      "answer": {
+        "id": 24326540,
+        "body": "If you are using Docker-for-mac or Docker-for-Windows 18.03+, connect to your MySQL service using the host host.docker.internal (instead of the 127.0.0.1 in your connection string).\nIf you are using Docker-for-Linux 20.10.0+, you can also use the host host.docker.internal if you started your Docker container with the --add-host host.docker.internal:host-gateway option, or added the following snippet in your docker-compose.yml file:\n\n```\nextra_hosts:\n    - \"host.docker.internal:host-gateway\"\n\n```\n\nOtherwise, read below\n\nTLDR\nUse --network=\"host\" in your docker run command, then 127.0.0.1 in your Docker container will point to your Docker host.\nNote: This mode only works on Docker for Linux, per the documentation.\n\nNote on Docker container networking modes\nDocker offers different networking modes when running containers. Depending on the mode you choose you would connect to your MySQL database running on the Docker host differently.\ndocker run --network=\"bridge\" (default)\nDocker creates a bridge named docker0 by default. Both the Docker host and the Docker containers have an IP address on that bridge.\nOn the Docker host, type sudo ip addr show docker0 you will have an output looking like:\n\n```\n[vagrant@docker:~] $ sudo ip addr show docker0\n4: docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default\n    link/ether 56:84:7a:fe:97:99 brd ff:ff:ff:ff:ff:ff\n    inet 172.17.42.1/16 scope global docker0\n       valid_lft forever preferred_lft forever\n    inet6 fe80::5484:7aff:fefe:9799/64 scope link\n       valid_lft forever preferred_lft forever\n\n```\n\nSo here my Docker host has the IP address 172.17.42.1 on the docker0 network interface.\nNow start a new container and get a shell on it: docker run --rm -it ubuntu:trusty bash and within the container type ip addr show eth0 to discover how its main network interface is set up:\n\n```\nroot@e77f6a1b3740:/# ip addr show eth0\n863: eth0: <BROADCAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000\n    link/ether 66:32:13:f0:f1:e3 brd ff:ff:ff:ff:ff:ff\n    inet 172.17.1.192/16 scope global eth0\n       valid_lft forever preferred_lft forever\n    inet6 fe80::6432:13ff:fef0:f1e3/64 scope link\n       valid_lft forever preferred_lft forever\n\n```\n\nHere my container has the IP address 172.17.1.192. Now look at the routing table:\n\n```\nroot@e77f6a1b3740:/# route\nKernel IP routing table\nDestination     Gateway         Genmask         Flags Metric Ref    Use Iface\ndefault         172.17.42.1     0.0.0.0         UG    0      0        0 eth0\n172.17.0.0      *               255.255.0.0     U     0      0        0 eth0\n\n```\n\nSo the IP address of the Docker host 172.17.42.1 is set as the default route and is accessible from your container.\n\n```\nroot@e77f6a1b3740:/# ping 172.17.42.1\nPING 172.17.42.1 (172.17.42.1) 56(84) bytes of data.\n64 bytes from 172.17.42.1: icmp_seq=1 ttl=64 time=0.070 ms\n64 bytes from 172.17.42.1: icmp_seq=2 ttl=64 time=0.201 ms\n64 bytes from 172.17.42.1: icmp_seq=3 ttl=64 time=0.116 ms\n\n```\n\ndocker run --network=\"host\"\nAlternatively you can run a Docker container with network settings set to host. Such a container will share the network stack with the Docker host and from the container point of view, localhost (or 127.0.0.1) will refer to the Docker host.\nBe aware that any port opened in your Docker container would be opened on the Docker host. And this without requiring the -p or -P docker run option.\nIP configuration on my Docker host:\n\n```\n[vagrant@docker:~] $ ip addr show eth0\n2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000\n    link/ether 08:00:27:98:dc:aa brd ff:ff:ff:ff:ff:ff\n    inet 10.0.2.15/24 brd 10.0.2.255 scope global eth0\n       valid_lft forever preferred_lft forever\n    inet6 fe80::a00:27ff:fe98:dcaa/64 scope link\n       valid_lft forever preferred_lft forever\n\n```\n\nAnd from a Docker container in host mode:\n\n```\n[vagrant@docker:~] $ docker run --rm -it --network=host ubuntu:trusty ip addr show eth0\n2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000\n    link/ether 08:00:27:98:dc:aa brd ff:ff:ff:ff:ff:ff\n    inet 10.0.2.15/24 brd 10.0.2.255 scope global eth0\n       valid_lft forever preferred_lft forever\n    inet6 fe80::a00:27ff:fe98:dcaa/64 scope link\n       valid_lft forever preferred_lft forever\n\n```\n\nAs you can see, both the Docker host and Docker container share the exact same network interface and as such have the same IP address.\n\nConnecting to MySQL from containers\nBridge mode\nTo access MySQL running on the Docker host from containers in bridge mode, you need to make sure the MySQL service is listening for connections on the 172.17.42.1 IP address.\nTo do so, make sure you have either bind-address = 172.17.42.1 or bind-address = 0.0.0.0 in your MySQL configuration file (my.cnf).\nIf you need to set an environment variable with the IP address of the gateway, you can run the following code in a container:\n\n```\nexport DOCKER_HOST_IP=$(route -n | awk '/UG[ \\t]/{print $2}')\n\n```\n\nThen in your application, use the DOCKER_HOST_IP environment variable to open the connection to MySQL.\nNote: if you use bind-address = 0.0.0.0, your MySQL server will listen for connections on all network interfaces. That means your MySQL server could be reached from the Internet; make sure to set up firewall rules accordingly.\nNote 2: if you use bind-address = 172.17.42.1 your MySQL server won't listen for connections made to 127.0.0.1. Processes running on the Docker host that would want to connect to MySQL would have to use the 172.17.42.1 IP address.\nHost mode\nTo access MySQL running on the docker host from containers in host mode, you can keep bind-address = 127.0.0.1 in your MySQL configuration and connect to 127.0.0.1 from your containers:\n\n```\n[vagrant@docker:~] $ docker run --rm -it --network=host mysql mysql -h 127.0.0.1 -uroot -p\nEnter password:\nWelcome to the MySQL monitor.  Commands end with ; or \\g.\nYour MySQL connection id is 36\nServer version: 5.5.41-0ubuntu0.14.04.1 (Ubuntu)\n\nCopyright (c) 2000, 2014, Oracle and/or its affiliates. All rights reserved.\n\nOracle is a registered trademark of Oracle Corporation and/or its affiliates. Other names may be trademarks of their respective owners.\n\nType 'help;' or '\\h' for help. Type '\\c' to clear the current input statement.\n\nmysql>\n\n```\n\nNote: Do use mysql -h 127.0.0.1 and not mysql -h localhost; otherwise the MySQL client would try to connect using a Unix socket.",
+        "votes": 4867,
+        "accepted": true,
+        "created_at": "2014-06-20T11:46:51"
+      }
+    },
+    {
+      "topic": "docker",
+      "question": {
+        "id": 24958140,
+        "title": "What is the difference between the &#39;COPY&#39; and &#39;ADD&#39; commands in a Dockerfile?",
+        "body": "What is the difference between the COPY and ADD commands in a Dockerfile, and when would I use one over the other?\n\n```\nCOPY <src> <dest>\n\n```\n\n\nThe COPY instruction will copy new files from <src> and add them to the container's filesystem at path <dest>\n\n\n```\nADD <src> <dest>\n\n```\n\n\nThe ADD instruction will copy new files from <src> and add them to the container's filesystem at path <dest>.",
+        "url": "https://stackoverflow.com/questions/24958140/what-is-the-difference-between-the-copy-and-add-commands-in-a-dockerfile",
+        "votes": 3134,
+        "tags": [
+          "docker",
+          "dockerfile"
+        ],
+        "created_at": "2014-07-25T14:31:20"
+      },
+      "answer": {
+        "id": 24958548,
+        "body": "You should check the ADD and COPY documentation for a more detailed description of their behaviors, but in a nutshell, the major difference is that ADD can do more than COPY:\n\nADD allows <src> to be a URL\nReferring to comments below, the ADD documentation states that:\n\n\nIf  is a local tar archive in a recognized compression format (identity, gzip, bzip2 or xz) then it is unpacked as a directory. Resources from remote URLs are not decompressed.\n\nNote that the Best practices for writing Dockerfiles suggests using COPY where the magic of ADD is not required. Otherwise, you (since you had to look up this answer) are likely to get surprised someday when you mean to copy keep_this_archive_intact.tar.gz into your container, but instead, you spray the contents onto your filesystem.",
+        "votes": 2997,
+        "accepted": true,
+        "created_at": "2014-07-25T14:52:38"
+      }
+    },
+    {
+      "topic": "docker",
+      "question": {
+        "id": 22049212,
+        "title": "Copying files from Docker container to host",
+        "body": "I'm thinking of using Docker to build my dependencies on a Continuous Integration (CI) server, so that I don't have to install all the runtimes and libraries on the agents themselves. \nTo achieve this I would need to copy the build artifacts that are built inside the container back into the host. Is that possible?",
+        "url": "https://stackoverflow.com/questions/22049212/copying-files-from-docker-container-to-host",
+        "votes": 3011,
+        "tags": [
+          "docker",
+          "docker-container",
+          "file-copying"
+        ],
+        "created_at": "2014-02-26T17:46:52"
+      },
+      "answer": {
+        "id": 22050116,
+        "body": "In order to copy a file from a container to the host, you can use the command\n\n```\ndocker cp <containerId>:/file/path/within/container /host/path/target\n\n```\n\nHere's an example:\n\n```\n$ sudo docker cp goofy_roentgen:/out_read.jpg .\n\n```\n\nHere goofy_roentgen is the container name I got from the following command:\n\n```\n$ sudo docker ps\n\nCONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                                            NAMES\n1b4ad9311e93        bamos/openface      \"/bin/bash\"         33 minutes ago      Up 33 minutes       0.0.0.0:8000->8000/tcp, 0.0.0.0:9000->9000/tcp   goofy_roentgen\n\n```\n\nYou can also use (part of) the Container ID. The following command is equivalent to the first\n\n```\n$ sudo docker cp 1b4a:/out_read.jpg .\n\n```",
+        "votes": 4800,
+        "accepted": true,
+        "created_at": "2014-02-26T18:31:40"
+      }
+    },
+    {
+      "topic": "docker",
+      "question": {
+        "id": 21553353,
+        "title": "What is the difference between CMD and ENTRYPOINT in a Dockerfile?",
+        "body": "In Dockerfiles there are two commands that look similar to me: CMD and ENTRYPOINT. But I guess that there is a (subtle?) difference between them - otherwise it would not make any sense to have two commands for the very same thing.\nThe documentation states for CMD-\n\nThe main purpose of a CMD is to provide defaults for an executing container.\n\nand for ENTRYPOINT:\n\nAn ENTRYPOINT helps you to configure a container that you can run as an executable.\n\nSo, what's the difference between those two commands?",
+        "url": "https://stackoverflow.com/questions/21553353/what-is-the-difference-between-cmd-and-entrypoint-in-a-dockerfile",
+        "votes": 2859,
+        "tags": [
+          "docker",
+          "docker-entrypoint",
+          "docker-cmd"
+        ],
+        "created_at": "2014-02-04T13:04:23"
+      },
+      "answer": {
+        "id": 21564990,
+        "body": "Docker has a default entrypoint which is /bin/sh -c but does not have a default command.\nWhen you run docker like this:\ndocker run -i -t ubuntu bash\nthe entrypoint is the default /bin/sh -c, the image is ubuntu and the command is bash.\nThe command is run via the entrypoint. i.e., the actual thing that gets executed is /bin/sh -c bash. This allowed Docker to implement RUN quickly by relying on the shell's parser.\nLater on, people asked to be able to customize this, so ENTRYPOINT and --entrypoint were introduced.\nEverything after the image name, ubuntu in the example above, is the command and is passed to the entrypoint. When using the CMD instruction, it is exactly as if you were executing\ndocker run -i -t ubuntu <cmd>\nThe parameter of the entrypoint is <cmd>.\nYou will also get the same result if you instead type this command docker run -i -t ubuntu: a bash shell will start in the container because in the ubuntu Dockerfile a default CMD is specified:\nCMD [\"bash\"].\nAs everything is passed to the entrypoint, you can have a very nice behavior from your images. @Jiri example is good, it shows how to use an image as a \"binary\". When using [\"/bin/cat\"] as entrypoint and then doing docker run img /etc/passwd, you get it, /etc/passwd is the command and is passed to the entrypoint so the end result execution is simply /bin/cat /etc/passwd.\nAnother example would be to have any cli as entrypoint. For instance, if you have a redis image, instead of running docker run redisimg redis -H something -u toto get key, you can simply have ENTRYPOINT [\"redis\", \"-H\", \"something\", \"-u\", \"toto\"] and then run like this for the same result: docker run redisimg get key.",
+        "votes": 2715,
+        "accepted": true,
+        "created_at": "2014-02-04T22:34:33"
+      }
+    },
+    {
+      "topic": "ssh",
+      "question": {
+        "id": 11304895,
+        "title": "How do I copy a folder from remote to local using scp?",
+        "body": "How do I copy a folder from remote to local host using scp?\nI use ssh to log in to my server.\nThen, I would like to copy the remote folder foo to local /home/user/Desktop.\nHow do I achieve this?",
+        "url": "https://stackoverflow.com/questions/11304895/how-do-i-copy-a-folder-from-remote-to-local-using-scp",
+        "votes": 3574,
+        "tags": [
+          "shell",
+          "ssh",
+          "command-line",
+          "copy",
+          "scp"
+        ],
+        "created_at": "2012-07-03T05:17:58"
+      },
+      "answer": {
+        "id": 11304926,
+        "body": "```\nscp -r user@your.server.example.com:/path/to/foo /home/user/Desktop/\n\n```\n\nBy not including the trailing '/' at the end of foo, you will copy the directory itself (including contents), rather than only the contents of the directory.\nFrom man scp (See online manual)\n\n-r Recursively copy entire directories",
+        "votes": 6361,
+        "accepted": true,
+        "created_at": "2012-07-03T05:21:39"
+      }
+    },
+    {
+      "topic": "ssh",
+      "question": {
+        "id": 9270734,
+        "title": "ssh &quot;permissions are too open&quot;",
+        "body": "I get the following error from ssh:\n\n```\nPermissions 0777 for '/Users/username/.ssh/id_rsa' are too open.\nIt is recommended that your private key files are NOT accessible by others.\nThis private key will be ignored.\n\n```\n\nWhat permissions should I give to the id_rsa file?",
+        "url": "https://stackoverflow.com/questions/9270734/ssh-permissions-are-too-open",
+        "votes": 3291,
+        "tags": [
+          "permissions",
+          "ssh"
+        ],
+        "created_at": "2012-02-14T02:02:31"
+      },
+      "answer": {
+        "id": 9270753,
+        "body": "The keys need to be read-writable only by you:\n\n```\nchmod 600 ~/.ssh/id_rsa\n\n```\n\nAlternatively, the keys can be only readable by you (this also blocks your write access):\n\n```\nchmod 400 ~/.ssh/id_rsa\n\n```\n\n600 appears to be better in most cases, because you don't need to change file permissions later to edit it. (See the comments for more nuances)\nThe relevant portion from the manpage (man ssh)\n\n\n```\n ~/.ssh/id_rsa\n         Contains the private key for authentication.  These files contain sensitive \n         data and should be readable by the user but not\n         accessible by others (read/write/execute).  ssh will simply ignore a private \n         key file if it is              \n         accessible by others.  It is possible to specify a\n         passphrase when generating the key which will be used to encrypt the sensitive \n         part of this file using 3DES.\n\n ~/.ssh/identity.pub\n ~/.ssh/id_dsa.pub\n ~/.ssh/id_ecdsa.pub\n ~/.ssh/id_rsa.pub\n         Contains the public key for authentication.  These files are not sensitive and \n         can (but need not) be readable by anyone.\n\n```",
+        "votes": 5432,
+        "accepted": true,
+        "created_at": "2012-02-14T02:05:01"
+      }
+    },
+    {
+      "topic": "ssh",
+      "question": {
+        "id": 4565700,
+        "title": "How to specify the private SSH-key to use when executing shell command on Git?",
+        "body": "A rather unusual situation perhaps, but I want to specify a private SSH-key to use when executing a shell (git) command from the local computer.\nBasically like this:\n\n```\ngit clone git@github.com:TheUser/TheProject.git -key \"/home/christoffer/ssh_keys/theuser\"\n\n```\n\nOr even better (in Ruby):\n\n```\nwith_key(\"/home/christoffer/ssh_keys/theuser\") do\n  sh(\"git clone git@github.com:TheUser/TheProject.git\")\nend\n\n```\n\nI have seen examples of connecting to a remote server with Net::SSH that uses a specified private key, but this is a local command. Is it possible?",
+        "url": "https://stackoverflow.com/questions/4565700/how-to-specify-the-private-ssh-key-to-use-when-executing-shell-command-on-git",
+        "votes": 1895,
+        "tags": [
+          "git",
+          "bash",
+          "shell",
+          "ssh"
+        ],
+        "created_at": "2010-12-30T19:42:01"
+      },
+      "answer": {
+        "id": 4565746,
+        "body": "Something like this should work (suggested by orip):\n\n```\nssh-agent bash -c 'ssh-add /somewhere/yourkey; git clone git@github.com:user/project.git'\n\n```\n\nif you prefer subshells, you could try the following (though it is more fragile):\n\n```\nssh-agent $(ssh-add /somewhere/yourkey; git clone git@github.com:user/project.git)\n\n```\n\nGit will invoke SSH which will find its agent by environment variable; this will, in turn, have the key loaded.\nAlternatively, setting HOME may also do the trick, provided you are willing to setup a directory that contains only a .ssh directory as HOME; this may either contain an identity.pub, or a config file setting IdentityFile.",
+        "votes": 1170,
+        "accepted": true,
+        "created_at": "2010-12-30T19:48:28"
+      }
+    },
+    {
+      "topic": "ssh",
+      "question": {
+        "id": 112396,
+        "title": "How do I remove the passphrase for the SSH key without having to create a new key?",
+        "body": "I set a passphrase when creating a new SSH key on my laptop. But, as I realise now, this is quite painful when you are trying to commit (Git and SVN) to a remote location over SSH many times in an hour.\nOne way I can think of is, delete my SSH keys and create new. Is there a way to remove the passphrase, while still keeping the same keys?",
+        "url": "https://stackoverflow.com/questions/112396/how-do-i-remove-the-passphrase-for-the-ssh-key-without-having-to-create-a-new-ke",
+        "votes": 1626,
+        "tags": [
+          "unix",
+          "ssh",
+          "passwords",
+          "openssh",
+          "passphrase"
+        ],
+        "created_at": "2008-09-21T22:39:02"
+      },
+      "answer": {
+        "id": 112409,
+        "body": "Short answer:\n\n```\n$ ssh-keygen -p\n\n```\n\nThis will then prompt you to enter the keyfile location, the old passphrase, and the new passphrase (which can be left blank to have no passphrase).\n\nIf you would like to do it all on one line without prompts do:\n\n```\n$ ssh-keygen -p [-P old_passphrase] [-N new_passphrase] [-f keyfile]\n\n```\n\nImportant: Beware that when executing commands they will typically be logged in your ~/.bash_history file (or similar) in plain text including all arguments provided (i.e. the passphrases in this case). It is, therefore, is recommended that you use the first option unless you have a specific reason to do otherwise.   \nNotice though that you can still use -f keyfile without having to specify -P nor -N, and that the keyfile defaults to ~/.ssh/id_rsa, so in many cases, it's not even needed.\nYou might want to consider using ssh-agent, which can cache the passphrase for a time. The latest versions of gpg-agent also support the protocol that is used by ssh-agent.",
+        "votes": 2940,
+        "accepted": true,
+        "created_at": "2008-09-21T22:42:09"
+      }
+    },
+    {
+      "topic": "curl",
+      "question": {
+        "id": 7172784,
+        "title": "How do I POST JSON data with cURL?",
+        "body": "I use Ubuntu and installed cURL on it. I want to test my Spring REST application with cURL. I wrote my POST code at the Java side. However, I want to test it with cURL. I am trying to post a JSON data. Example data is like this:\n\n```\n{\"value\":\"30\",\"type\":\"Tip 3\",\"targetModule\":\"Target 3\",\"configurationGroup\":null,\"name\":\"Configuration Deneme 3\",\"description\":null,\"identity\":\"Configuration Deneme 3\",\"version\":0,\"systemId\":3,\"active\":true}\n\n```\n\nI use this command:\n\n```\ncurl -i \\\n    -H \"Accept: application/json\" \\\n    -H \"X-HTTP-Method-Override: PUT\" \\\n    -X POST -d \"value\":\"30\",\"type\":\"Tip 3\",\"targetModule\":\"Target 3\",\"configurationGroup\":null,\"name\":\"Configuration Deneme 3\",\"description\":null,\"identity\":\"Configuration Deneme 3\",\"version\":0,\"systemId\":3,\"active\":true \\\n    http://localhost:8080/xx/xxx/xxxx\n\n```\n\nIt returns this error:\n\n```\nHTTP/1.1 415 Unsupported Media Type\nServer: Apache-Coyote/1.1\nContent-Type: text/html;charset=utf-8\nContent-Length: 1051\nDate: Wed, 24 Aug 2011 08:50:17 GMT\n\n```\n\nThe error description is this:\n\nThe server refused this request because the request entity is in a format not supported by the requested resource for the requested method ().\n\nTomcat log:\n\"POST /ui/webapp/conf/clear HTTP/1.1\" 415 1051\nWhat is the right format of the cURL command?\nThis is my Java side PUT code (I have tested GET and DELETE and they work):\n\n```\n@RequestMapping(method = RequestMethod.PUT)\npublic Configuration updateConfiguration(HttpServletResponse response, @RequestBody Configuration configuration) { //consider @Valid tag\n    configuration.setName(\"PUT worked\");\n    //todo If error occurs response.sendError(HttpServletResponse.SC_NOT_FOUND);\n    return configuration;\n}\n\n```",
+        "url": "https://stackoverflow.com/questions/7172784/how-do-i-post-json-data-with-curl",
+        "votes": 3916,
+        "tags": [
+          "json",
+          "rest",
+          "spring-mvc",
+          "curl",
+          "http-headers"
+        ],
+        "created_at": "2011-08-24T08:51:11"
+      },
+      "answer": {
+        "id": 7173011,
+        "body": "You need to set your content-type to application/json. But -d (or --data) sends the Content-Type application/x-www-form-urlencoded by default, which is not accepted on Spring's side.\nLooking at the curl man page, I think you can use -H (or --header):\n\n```\n-H \"Content-Type: application/json\"\n\n```\n\nFull example:\n\n```\ncurl --header \"Content-Type: application/json\" \\\n  --request POST \\\n  --data '{\"username\":\"xyz\",\"password\":\"xyz\"}' \\\n  http://localhost:3000/api/login\n\n```\n\n(-H is short for --header, -d for --data)\nNote that -request POST is optional if you use -d, as the -d flag implies a POST request.\n\nOn Windows, things are slightly different. See the comment thread.",
+        "votes": 5814,
+        "accepted": true,
+        "created_at": "2011-08-24T09:12:29"
+      }
+    },
+    {
+      "topic": "curl",
+      "question": {
+        "id": 2068344,
+        "title": "How do I get a YouTube video thumbnail from the YouTube API?",
+        "body": "If I have a YouTube video URL, is there any way to use PHP and cURL to get the associated thumbnail from the YouTube API?",
+        "url": "https://stackoverflow.com/questions/2068344/how-do-i-get-a-youtube-video-thumbnail-from-the-youtube-api",
+        "votes": 2846,
+        "tags": [
+          "php",
+          "curl",
+          "youtube",
+          "youtube-api",
+          "youtube-data-api"
+        ],
+        "created_at": "2010-01-14T23:34:24"
+      },
+      "answer": {
+        "id": 2068371,
+        "body": "Each YouTube video has four generated images. They are predictably formatted as follows:\n\n```\nhttps://img.youtube.com/vi/<insert-youtube-video-id-here>/0.jpg\nhttps://img.youtube.com/vi/<insert-youtube-video-id-here>/1.jpg\nhttps://img.youtube.com/vi/<insert-youtube-video-id-here>/2.jpg\nhttps://img.youtube.com/vi/<insert-youtube-video-id-here>/3.jpg\n\n```\n\nThe first one in the list is a full size image and others are thumbnail images. The default thumbnail image (i.e., one of 1.jpg, 2.jpg, 3.jpg) is:\n\n```\nhttps://img.youtube.com/vi/<insert-youtube-video-id-here>/default.jpg\n\n```\n\nFor the high quality version of the thumbnail use a URL similar to this:\n\n```\nhttps://img.youtube.com/vi/<insert-youtube-video-id-here>/hqdefault.jpg\n\n```\n\nThere is also a medium quality version of the thumbnail, using a URL similar to the HQ:\n\n```\nhttps://img.youtube.com/vi/<insert-youtube-video-id-here>/mqdefault.jpg\n\n```\n\nFor the standard definition version of the thumbnail, use a URL similar to this:\n\n```\nhttps://img.youtube.com/vi/<insert-youtube-video-id-here>/sddefault.jpg\n\n```\n\nFor the maximum resolution version of the thumbnail use a URL similar to this:\n\n```\nhttps://img.youtube.com/vi/<insert-youtube-video-id-here>/maxresdefault.jpg\n\n```\n\nAll of the above URLs are available over HTTP too. Additionally, the slightly shorter hostname i3.ytimg.com works in place of img.youtube.com in the example URLs above.\nAlternatively, you can use the YouTube Data API (v3) to get thumbnail images.",
+        "votes": 5460,
+        "accepted": true,
+        "created_at": "2010-01-14T23:40:25"
+      }
+    },
+    {
+      "topic": "curl",
+      "question": {
+        "id": 356705,
+        "title": "How to send a header using a HTTP request through a cURL call?",
+        "body": "I wish to send a header to my Apache server on a Linux box.  How can I achieve this via a cURL call?",
+        "url": "https://stackoverflow.com/questions/356705/how-to-send-a-header-using-a-http-request-through-a-curl-call",
+        "votes": 2057,
+        "tags": [
+          "curl",
+          "http-headers"
+        ],
+        "created_at": "2008-12-10T16:38:57"
+      },
+      "answer": {
+        "id": 19217512,
+        "body": "GET:\nwith JSON:\n\n```\ncurl -i -H \"Accept: application/json\" -H \"Content-Type: application/json\" http://hostname/resource\n\n```\n\nwith XML:\n\n```\ncurl -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -X GET http://hostname/resource\n\n```\n\nPOST:\nFor posting data:\n\n```\ncurl --data \"param1=value1&param2=value2\" http://hostname/resource\n\n```\n\nFor file upload:\n\n```\ncurl --form \"fileupload=@filename.txt\" http://hostname/resource\n\n```\n\nRESTful HTTP Post:\n\n```\ncurl -X POST -d @filename http://hostname/resource\n\n```\n\nFor logging into a site (auth):\n\n```\ncurl -d \"username=admin&password=admin&submit=Login\" --dump-header headers http://localhost/Login\ncurl -L -b headers http://localhost/\n\n```\n\nSource",
+        "votes": 940,
+        "accepted": true,
+        "created_at": "2013-10-07T05:15:07"
+      }
+    },
+    {
+      "topic": "curl",
+      "question": {
+        "id": 18215389,
+        "title": "How do I measure request and response times at once using cURL?",
+        "body": "I have a web service that receives data in JSON format, processes the data, and then returns the result to the requester.\nI want to measure the request, response, and total time using cURL.\nMy example request looks like:\n\n```\ncurl -X POST -d @file server:port\n\n```\n\nand I currently measure this using the time command in Linux:\n\n```\ntime curl -X POST -d @file server:port\n\n```\n\nThe time command only measures total time, though - which isn't quite what I am looking for.\nIs there any way to measure request and response times using cURL?",
+        "url": "https://stackoverflow.com/questions/18215389/how-do-i-measure-request-and-response-times-at-once-using-curl",
+        "votes": 1120,
+        "tags": [
+          "curl",
+          "time",
+          "upload",
+          "download",
+          "measure"
+        ],
+        "created_at": "2013-08-13T17:21:22"
+      },
+      "answer": {
+        "id": 22625150,
+        "body": "From this brilliant blog post...  https://blog.josephscott.org/2011/10/14/timing-details-with-curl/\ncURL supports formatted output for the details of the request (see the cURL manpage for details, under -w, \u2013write-out <format>). For our purposes we\u2019ll focus just on the timing details that are provided. Times below are in seconds.\n\nCreate a new file, curl-format.txt, and paste in:\n\n```\n     time_namelookup:  %{time_namelookup}s\\n\n        time_connect:  %{time_connect}s\\n\n     time_appconnect:  %{time_appconnect}s\\n\n    time_pretransfer:  %{time_pretransfer}s\\n\n       time_redirect:  %{time_redirect}s\\n\n  time_starttransfer:  %{time_starttransfer}s\\n\n                     ----------\\n\n          time_total:  %{time_total}s\\n\n\n```\n\n\nMake a request:\n\n```\n curl -w \"@curl-format.txt\" -o /dev/null -s \"http://wordpress.com/\"\n\n```\n\nOr on Windows, it's...\n\n```\n curl -w \"@curl-format.txt\" -o NUL -s \"http://wordpress.com/\"\n\n```\n\n\n\n\nWhat this does:\n-w \"@curl-format.txt\" tells cURL to use our format file\n-o /dev/null redirects the output of the request to /dev/null\n-s\ntells cURL not to show a progress meter\n\"http://wordpress.com/\" is\nthe URL we are requesting. Use quotes particularly if your URL has \"&\" query string parameters\n\nAnd here is what you get back:\n\n```\n   time_namelookup:  0.001s\n      time_connect:  0.037s\n   time_appconnect:  0.000s\n  time_pretransfer:  0.037s\n     time_redirect:  0.000s\ntime_starttransfer:  0.092s\n                   ----------\n        time_total:  0.164s\n\n```\n\nI have not yet seen an option to output the results in microseconds, but if you're aware of one, post in the comments below.\n\nMake a Linux/Mac shortcut (alias)\n\n```\nalias curltime=\"curl -w \\\"@$HOME/.curl-format.txt\\\" -o /dev/null -s \"\n\n```\n\nThen you can simply call...\n\n```\ncurltime wordpress.org\n\n```\n\nThanks to commenter Pete Doyle!\n\nMake a Linux/Mac stand-alone script\nThis script does not require a separate .txt file to contain the formatting.\nCreate a new file, curltime, somewhere in your executable path, and paste in:\n\n```\n#!/bin/bash\n\ncurl -w @- -o /dev/null -s \"$@\" <<'EOF'\n    time_namelookup:  %{time_namelookup}\\n\n       time_connect:  %{time_connect}\\n\n    time_appconnect:  %{time_appconnect}\\n\n   time_pretransfer:  %{time_pretransfer}\\n\n      time_redirect:  %{time_redirect}\\n\n time_starttransfer:  %{time_starttransfer}\\n\n                    ----------\\n\n         time_total:  %{time_total}\\n\nEOF\n\n```\n\nThen call it the same way as the alias:\n\n```\ncurltime wordpress.org\n\n```\n\n\nMake a Windows shortcut (aka BAT file)\nCreate a new text file called curltime.bat in the same folder as curl.exe and curl-format.txt, and paste in the following line:\n\n```\ncurl -w \"@%~dp0curl-format.txt\" -o NUL -s %*\n\n```\n\nThen from the command line you can simply call:\n\n```\ncurltime wordpress.org\n\n```\n\n(Make sure the folder is listed in your Windows PATH variable to be able to use the command from any folder.)",
+        "votes": 2755,
+        "accepted": true,
+        "created_at": "2014-03-25T03:55:39"
+      }
+    },
+    {
+      "topic": "curl",
+      "question": {
+        "id": 7373752,
+        "title": "How do I get cURL to not show the progress bar?",
+        "body": "I'm trying to use cURL in a script and get it to not show the progress bar. \nI've tried the -s, -silent, -S, and -quiet options, but none of them work.\nHere's a typical command I've tried:\n\n```\ncurl -s http://google.com > temp.html\n\n```\n\nI only get the progress bar when pushing it to a file, so curl -s http://google.com doesn't have a progress bar, but curl -s http://google.com > temp.html does.",
+        "url": "https://stackoverflow.com/questions/7373752/how-do-i-get-curl-to-not-show-the-progress-bar",
+        "votes": 840,
+        "tags": [
+          "linux",
+          "bash",
+          "unix",
+          "scripting",
+          "curl"
+        ],
+        "created_at": "2011-09-10T18:30:50"
+      },
+      "answer": {
+        "id": 7373922,
+        "body": "```\ncurl -s http://google.com > temp.html\n\n```\n\nworks for curl version 7.19.5 on Ubuntu 9.10 (no progress bar). But if for some reason that does not work on your platform, you could always redirect stderr to /dev/null:\n\n```\ncurl  http://google.com 2>/dev/null > temp.html\n\n```",
+        "votes": 775,
+        "accepted": true,
+        "created_at": "2011-09-10T19:04:05"
+      }
+    },
+    {
+      "topic": "awk",
+      "question": {
+        "id": 6022384,
+        "title": "Bash tool to get nth line from a file",
+        "body": "Is there a \"canonical\" way of doing that? I've been using head -n | tail -1 which does the trick, but I've been wondering if there's a Bash tool that specifically extracts a line (or a range of lines) from a file.\nBy \"canonical\" I mean a program whose main function is doing that.",
+        "url": "https://stackoverflow.com/questions/6022384/bash-tool-to-get-nth-line-from-a-file",
+        "votes": 900,
+        "tags": [
+          "bash",
+          "shell",
+          "unix",
+          "awk",
+          "sed"
+        ],
+        "created_at": "2011-05-16T19:33:42"
+      },
+      "answer": {
+        "id": 6022431,
+        "body": "head and pipe with tail will be slow for a huge file. I would suggest sed like this:\n\n```\nsed 'NUMq;d' file\n\n```\n\nWhere NUM is the number of the line you want to print; so, for example, sed '10q;d' file to print the 10th line of file.\nExplanation:\nNUMq will quit immediately when the line number is NUM.\nd will delete the line instead of printing it; this is inhibited on the last line because the q causes the rest of the script to be skipped when quitting.\nIf you have NUM in a variable, you will want to use double quotes instead of single:\n\n```\nsed \"${NUM}q;d\" file\n\n```",
+        "votes": 1153,
+        "accepted": true,
+        "created_at": "2011-05-16T19:38:33"
+      }
+    },
+    {
+      "topic": "awk",
+      "question": {
+        "id": 3510673,
+        "title": "Find and kill a process in one line using bash and regex",
+        "body": "I often need to kill a process during programming.\nThe way I do it now is:\n\n```\n[~]$ ps aux | grep 'python csp_build.py'\nuser    5124  1.0  0.3 214588 13852 pts/4    Sl+  11:19   0:00 python csp_build.py\nuser    5373  0.0  0.0   8096   960 pts/6    S+   11:20   0:00 grep python csp_build.py\n[~]$ kill 5124\n\n```\n\nHow can I extract the process id automatically and kill it in the same line?\nLike this:\n\n```\n[~]$ ps aux | grep 'python csp_build.py' | kill <regex that returns the pid>\n\n```",
+        "url": "https://stackoverflow.com/questions/3510673/find-and-kill-a-process-in-one-line-using-bash-and-regex",
+        "votes": 815,
+        "tags": [
+          "regex",
+          "bash",
+          "terminal",
+          "awk"
+        ],
+        "created_at": "2010-08-18T09:33:41"
+      },
+      "answer": {
+        "id": 3510850,
+        "body": "In bash, using only the basic tools listed in your question(1), you should be able to do:\n\n```\nkill $(ps aux | grep '[p]ython csp_build.py' | awk '{print $2}')\n\n```\n\nDetails on its workings are as follows:\n\nThe ps gives you the list of all the processes.\nThe grep filters that based on your search string, [p] is a trick to stop you picking up the actual grep process itself.\nThe awk just gives you the second field of each line, which is the PID.\nThe $(x) construct means to execute x then take its output and put it on the command line. The output of that ps pipeline inside that construct above is the list of process IDs so you end up with a command like kill 1234 1122 7654.\n\nHere's a transcript showing it in action:\n\n```\npax> sleep 3600 &\n[1] 2225\npax> sleep 3600 &\n[2] 2226\npax> sleep 3600 &\n[3] 2227\npax> sleep 3600 &\n[4] 2228\npax> sleep 3600 &\n[5] 2229\npax> kill $(ps aux | grep '[s]leep' | awk '{print $2}')\n[5]+  Terminated              sleep 3600\n[1]   Terminated              sleep 3600\n[2]   Terminated              sleep 3600\n[3]-  Terminated              sleep 3600\n[4]+  Terminated              sleep 3600\n\n```\n\nand you can see it terminating all the sleepers.\nExplaining the grep '[p]ython csp_build.py' bit in a bit more detail: when you do sleep 3600 & followed by ps -ef | grep sleep, you tend to get two processes with sleep in it, the sleep 3600 and the grep sleep (because they both have sleep in them, that's not rocket science).\nHowever, ps -ef | grep '[s]leep' won't create a grep process with sleep in it, it instead creates one with the command grep '[s]leep' and here's the tricky bit: the grep doesn't find that one, because it's looking for the regular expression \"any character from the character class [s] (which is basically just s) followed by leep.\nIn other words, it's looking for sleep but the grep process is grep '[s]leep' which doesn't have the text sleep in it.\nWhen I was shown this (by someone here on SO), I immediately started using it because\n\nit's one less process than adding | grep -v grep; and\nit's elegant and sneaky, a rare combination :-)\n\n\n(1) If you're not limited to using those basic tools, there's a nifty pgrep command which will find processes based on certain criteria (assuming you have it available on your system, of course).\nFor example, you can use pgrep sleep to output the process IDs for all sleep commands (by default, it matches the process name). If you want to match the entire command line as shown in ps, you can do something like pgrep -f 'sleep 9999'.\nAs an aside, it doesn't list itself if you do pgrep pgrep, so the tricky filter method shown above is not necessary in this case.\nYou can check that the processes are the ones you're interested in by using -a to show the full process names. You can also limit the scope to your own processes (or a specific set of users) with -u or -U. See the man page for pgrep/pkill for more options.\nOnce you're satisfied it will only show the processes you're interested in, you can then use pkill with the same parameters to send a signal to all those processes.",
+        "votes": 1740,
+        "accepted": true,
+        "created_at": "2010-08-18T09:53:24"
+      }
+    },
+    {
+      "topic": "awk",
+      "question": {
+        "id": 44656515,
+        "title": "How to remove double-quotes in jq output for parsing json files in bash?",
+        "body": "I'm using jq to parse a JSON file as shown here. However, the results for string values contain the \"double-quotes\" as expected, as shown below:\n\n```\n$ cat json.txt | jq '.name'\n\"Google\"\n\n```\n\nHow can I pipe this into another command to remove the \"\"? so I get\n\n```\n$ cat json.txt | jq '.name' | some_other_command\nGoogle\n\n```\n\nWhat some_other_command can I use?",
+        "url": "https://stackoverflow.com/questions/44656515/how-to-remove-double-quotes-in-jq-output-for-parsing-json-files-in-bash",
+        "votes": 778,
+        "tags": [
+          "bash",
+          "awk",
+          "sed",
+          "jq"
+        ],
+        "created_at": "2017-06-20T14:55:19"
+      },
+      "answer": {
+        "id": 44656583,
+        "body": "Use the -r (or --raw-output) option to emit raw strings as output:\n\n```\njq -r '.name' <json.txt\n\n```",
+        "votes": 1394,
+        "accepted": true,
+        "created_at": "2017-06-20T14:58:03"
+      }
+    },
+    {
+      "topic": "awk",
+      "question": {
+        "id": 1632113,
+        "title": "What is the difference between sed and awk?",
+        "body": "What is the difference between awk\nand sed ?\nWhat kind of application are best use\ncases for sed and awk tools ?",
+        "url": "https://stackoverflow.com/questions/1632113/what-is-the-difference-between-sed-and-awk",
+        "votes": 594,
+        "tags": [
+          "sed",
+          "awk"
+        ],
+        "created_at": "2009-10-27T16:37:47"
+      },
+      "answer": {
+        "id": 1632565,
+        "body": "sed is a stream editor. It works with streams of characters on a per-line basis. It has a primitive programming language that includes goto-style loops and simple conditionals (in addition to pattern matching and address matching). There are essentially only two \"variables\": pattern space and hold space. Readability of scripts can be difficult. Mathematical operations are extraordinarily awkward at best.\nThere are various versions of sed with different levels of support for command line options and language features.\nawk is oriented toward delimited fields on a per-line basis. It has much more robust programming constructs including if/else, while, do/while and for (C-style and array iteration). There is complete support for variables and single-dimension associative arrays plus (IMO) kludgey multi-dimension arrays. Mathematical operations resemble those in C. It has printf and functions. The \"K\" in \"AWK\" stands for \"Kernighan\" as in \"Kernighan and Ritchie\" of the book \"C Programming Language\" fame (not to forget Aho and Weinberger). One could conceivably write a detector of academic plagiarism using awk.\nGNU awk (gawk) has numerous extensions, including true multidimensional arrays in the latest version. There are other variations of awk including mawk and nawk.\nBoth programs use regular expressions for selecting and processing text.\nI would tend to use sed where there are patterns in the text. For example, you could replace all the negative numbers in some text that are in the form \"minus-sign followed by a sequence of digits\" (e.g. \"-231.45\") with the \"accountant's brackets\" form (e.g. \"(231.45)\") using this (which has room for improvement):\n\n```\nsed 's/-\\([0-9.]\\+\\)/(\\1)/g' inputfile\n\n```\n\nI would use awk when the text looks more like rows and columns or, as awk refers to them \"records\" and \"fields\". If I was going to do a similar operation as above, but only on the third field in a simple comma delimited file I might do something like:\n\n```\nawk -F, 'BEGIN {OFS = \",\"} {gsub(\"-([0-9.]+)\", \"(\" substr($3, 2) \")\", $3); print}' inputfile\n\n```\n\nOf course those are just very simple examples that don't illustrate the full range of capabilities that each has to offer.",
+        "votes": 673,
+        "accepted": true,
+        "created_at": "2009-10-27T17:53:43"
+      }
+    }
+  ]
+}
